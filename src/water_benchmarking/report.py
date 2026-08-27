@@ -48,7 +48,9 @@ def _format(key: str, value: float | None, error: float | None, template: str) -
     scaled = value * SCALE.get(key, 1.0)
     text = template.format(scaled)
     if error is not None and error == error:      # not NaN
-        text += " +/- " + template.format(error * SCALE.get(key, 1.0)).strip()
+        # Two significant figures for the error whatever the value's format:
+        # a 0.003 kJ/mol uncertainty printed at two decimals reads as "+/- 0.00".
+        text += f" +/- {error * SCALE.get(key, 1.0):.2g}"
     return text
 
 
@@ -76,7 +78,7 @@ def deviation_table(results: list[Results]) -> list[list[str]]:
     header = ["Property"] + [r.key for r in results]
     rows = [header]
     for key, label, _unit, _template in PROPERTIES:
-        if key not in experiment.EXPERIMENT:
+        if key not in experiment.EXPERIMENT or key in experiment.NOT_DIRECTLY_COMPARABLE:
             continue
         row = [label]
         for result in results:
@@ -90,6 +92,18 @@ def deviation_table(results: list[Results]) -> list[list[str]]:
             row.append(f"{percent:+.1f}%{flag}")
         rows.append(row)
     return rows
+
+
+def _notes(results: list[Results]) -> list[str]:
+    """Footnotes for flagged values whose cause is understood."""
+    lines = []
+    for result in results:
+        for key, _label, _unit, _template in PROPERTIES:
+            note = experiment.NOTES.get((result.model, key))
+            value = result.values.get(key)
+            if note and value is not None and experiment.within_literature(value, result.model, key) is False:
+                lines.append(f"- {result.key}, {key}: {note}")
+    return lines + [""] if lines else []
 
 
 def write_csv(rows: list[list[str]], path: Path) -> None:
@@ -147,10 +161,13 @@ def write_report(results: list[Results], output_dir: Path) -> Path:
         "## Deviation from experiment",
         "",
         "`[!]` marks a value outside the published range for that model, which points",
-        "at the setup rather than at the model.",
+        "at the setup rather than at the model -- unless a note below says otherwise.",
+        "tau1(mu) is omitted: the experimental Debye time is a collective quantity and",
+        "not directly comparable to the single-molecule correlation time simulated.",
         "",
         to_markdown(deviation_table(results)),
         "",
+        *_notes(results),
     ]
     if figures:
         text += ["## Figures", ""]
