@@ -1,20 +1,66 @@
 [
-  {"tag": "vrescale", "label": "thermostat v-rescale, barostat C-rescale", "n_molecules": 2048,
-   "cutoff": 1.8, "electrostatics": "RF eps_rf = 61",
-   "changed": "Berendsen T/P coupling -> v-rescale / C-rescale"},
-  {"tag": "rc14", "label": "cutoff 1.4 nm", "n_molecules": 2048,
-   "cutoff": 1.4, "electrostatics": "RF eps_rf = 61",
-   "changed": "R_c 1.8 -> 1.4 nm (R_c/L 0.45 -> 0.35)"},
-  {"tag": "rc09", "label": "cutoff 0.9 nm", "n_molecules": 2048,
-   "cutoff": 0.9, "electrostatics": "RF eps_rf = 61",
-   "changed": "R_c 1.8 -> 0.9 nm (R_c/L 0.45 -> 0.23)"},
-  {"tag": "big18", "label": "16384 waters (8x box)", "n_molecules": 16384,
-   "cutoff": 1.8, "electrostatics": "RF eps_rf = 61",
-   "changed": "2048 -> 16384 waters, L 3.98 -> 7.96 nm (R_c/L 0.45 -> 0.23)"},
-  {"tag": "rfinf", "label": "RF eps_rf = infinity", "n_molecules": 2048,
-   "cutoff": 1.8, "electrostatics": "RF eps_rf = inf",
-   "changed": "eps_rf 61 -> infinity (conducting boundary; k_rf +2.4%)"},
-  {"tag": "pme", "label": "PME", "n_molecules": 2048,
-   "cutoff": 1.8, "electrostatics": "PME",
-   "changed": "reaction field -> particle-mesh Ewald"}
+  {
+    "tag": "vrescale",
+    "label": "thermostat v-rescale, barostat C-rescale",
+    "n_molecules": 2048,
+    "cutoff": 1.8,
+    "electrostatics": "RF eps_rf = 61",
+    "changed": "Berendsen T/P coupling -> v-rescale / C-rescale"
+  },
+  {
+    "tag": "rc14",
+    "label": "cutoff 1.4 nm",
+    "n_molecules": 2048,
+    "cutoff": 1.4,
+    "electrostatics": "RF eps_rf = 61",
+    "changed": "R_c 1.8 -> 1.4 nm (R_c/L 0.45 -> 0.35)"
+  },
+  {
+    "tag": "rc09",
+    "label": "cutoff 0.9 nm",
+    "n_molecules": 2048,
+    "cutoff": 0.9,
+    "electrostatics": "RF eps_rf = 61",
+    "changed": "R_c 1.8 -> 0.9 nm (R_c/L 0.45 -> 0.23)"
+  },
+  {
+    "tag": "big18",
+    "label": "16384 waters (8x box)",
+    "n_molecules": 16384,
+    "cutoff": 1.8,
+    "electrostatics": "RF eps_rf = 61",
+    "changed": "2048 -> 16384 waters, L 3.98 -> 7.96 nm (R_c/L 0.45 -> 0.23)"
+  },
+  {
+    "tag": "rfinf",
+    "label": "RF eps_rf = infinity",
+    "n_molecules": 2048,
+    "cutoff": 1.8,
+    "electrostatics": "RF eps_rf = inf",
+    "changed": "eps_rf 61 -> infinity (conducting boundary; k_rf +2.4%)"
+  },
+  {
+    "tag": "pme",
+    "label": "PME",
+    "n_molecules": 2048,
+    "cutoff": 1.8,
+    "electrostatics": "PME",
+    "changed": "reaction field -> particle-mesh Ewald"
+  },
+  {
+    "tag": "cpu61",
+    "label": "GROMACS CPU kernel, RF eps_rf = 61",
+    "n_molecules": 2048,
+    "cutoff": 1.8,
+    "electrostatics": "RF eps_rf = 61",
+    "changed": "-nb gpu -> -nb cpu (GROMACS 2024.3, Setonix work partition)"
+  },
+  {
+    "tag": "cpuinf",
+    "label": "GROMACS CPU kernel, RF eps_rf = infinity",
+    "n_molecules": 2048,
+    "cutoff": 1.8,
+    "electrostatics": "RF eps_rf = inf",
+    "changed": "-nb cpu and eps_rf 61 -> infinity"
+  }
 ]
