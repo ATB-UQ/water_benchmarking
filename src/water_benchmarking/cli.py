@@ -92,6 +92,12 @@ def analyse_run(model: str, engine: str, run_dir: Path) -> report.Results:
         results.values["tau1_dipole"] = summary.tau1["dipole"]
         results.values["dielectric"] = summary.dielectric.epsilon
         results.uncertainties["dielectric"] = summary.dielectric.epsilon_error
+        # The relation the number came from must travel with it: the same
+        # fluctuation reads ~70 under a conducting boundary and ~140 under
+        # Neumann at eps_rf = 61, and only the first is stable there.
+        results.values["dielectric_y"] = summary.dielectric.y
+        results.values["dielectric_neumann"] = summary.dielectric.epsilon_neumann
+        results.values["dielectric_neumann_sensitivity"] = summary.dielectric.neumann_sensitivity
 
     return results
 

@@ -160,3 +160,27 @@ def test_broken_molecules_are_caught_not_silently_analysed():
     split[3, 1, 0] += 4.0          # one hydrogen wrapped to the far face
     with pytest.raises(AssertionError, match="pbc mol"):
         gromacs.assert_whole_molecules(Frame(0.0, 0, split, 4.0))
+
+
+def test_dielectric_reports_the_stable_relation_and_flags_the_unstable_one():
+    """y = 67 is literature SPC under eps = 1 + y and eps = 150 under Neumann(61).
+
+    The two must both be reported, and the Neumann sensitivity must say the
+    second number is not to be trusted: near its pole a 10% change in y moves
+    eps by fifty.
+    """
+    rng = np.random.default_rng(5)
+    n = 4000
+    volume = 62.78
+    # Draw box dipoles with the variance that gives y = 67 at this V and T.
+    target_y = 67.0
+    variance_si = target_y * 3 * dielectric.VACUUM_PERMITTIVITY * volume * 1e-27 \
+        * dielectric.BOLTZMANN * 298.15
+    sigma_e_nm = np.sqrt(variance_si / 3) / (dielectric.ELEMENTARY_CHARGE * 1e-9)
+    dipoles = rng.normal(0, sigma_e_nm, (n, 3))
+
+    result = dielectric.from_dipoles(dipoles, np.full(n, volume), np.arange(n) * 0.1)
+    assert result.y == pytest.approx(target_y, rel=0.08)
+    assert result.epsilon == pytest.approx(1 + target_y, rel=0.08)
+    assert result.epsilon_neumann > 120
+    assert result.neumann_sensitivity > 2.5
