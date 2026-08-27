@@ -121,34 +121,41 @@ system a quarter that size.
 GROMACS runs on one Setonix GCD per model (a whole GPU node is *slower* at 6k atoms), with
 `-nb gpu -bonded gpu` and no PME offload — `-pme gpu` is a fatal error under a reaction field.
 
-## The dielectric constant: an open finding (2026-08-27)
+## The dielectric constant under a reaction field (resolved 2026-08-27)
 
-Four of the five properties come out where the literature says they should.
-The fifth does not, and the discrepancy is in the *simulation*, not the analysis:
+Four of the five properties came out where the literature says they should. The fifth
+first read **ε = 140** for SPC and **155** for SPC/E against published 65 and 71, and a day of
+diagnostics traced it not to the simulations but to the *relation* used to read them.
 
-| SPC, 2048 waters, 298 K | ε |
-|---|---|
-| this protocol (RF ε_RF = 61, R_c = 1.8 nm), GROMACS, 10 ns | **140** |
-| same, Berendsen → v-rescale / C-rescale, 1 ns | 141 |
-| same, reaction field → PME, 1 ns | 76 |
-| published SPC (RF or Ewald, R_c ≈ 0.9–1.4 nm) | 65 ± 5 |
+The measured quantity is the dimensionless fluctuation y = (⟨M²⟩−⟨M⟩²)/(3ε₀VkT). Every
+reaction-field geometry tried gives the same y, and the 8× box under the reaction field gives the
+PME value exactly:
 
-SPC/E gives 155 under the protocol against a published ~71 — the same ×2.2.
+| SPC, 298 K, 1 ns each unless noted | y | ε = 1 + y | ε by Neumann(ε_RF = 61) |
+|---|---|---|---|
+| protocol: RF ε_RF = 61, R_c = 1.8 nm, Berendsen (10 ns) | 67.3 | **68** | 150 |
+| same, v-rescale / C-rescale | 65.9 | 67 | 143 |
+| same, R_c = 1.4 nm | 59.3 | 60 | 116 |
+| same, R_c = 0.9 nm | 68.1 | 69 | 153 |
+| same, 16384 waters (R_c/L = 0.23) | 75.6 | 77 | 197 |
+| RF with ε_RF = ∞ | 61.9 | 63 | – |
+| PME | 75.6 | 77 | – |
+| published SPC | | 65 ± 5 | |
 
-What is ruled out: the analysis (`gmx dipoles -epsilonRF 61` agrees with the
-in-house code to 5 % on the same frames; the molecular dipole is 2.274 D
-exactly); the thermostat (v-rescale gives the same answer); the state point
-(298.1 K, 2 bar, 976 kg m⁻³); and sampling length — the box dipole decorrelates
-in 6–8 ps, so each 1 ns segment carries ~100 independent samples, the
-per-segment values scatter 137–148, and the cumulative estimate is flat from
-5 ns on. Truncation would bias ε *low* in any case.
+Neumann's relation for a finite ε_RF, (ε−1)(2ε_RF+1)/(2ε_RF+ε) = y, has a pole at
+y = 2ε_RF + 1 = 123. Water sits fifty units from it, where dε/dy ≈ 3: the ten-percent scatter
+between the runs above becomes a spread of 116–197. The relation presumes the fluctuation carries
+a strong ε_RF dependence — a box under ε_RF = 61 should fluctuate ~35 % less than one under
+ε_RF = ∞ — but the force field barely does: k_rf at ε_RF = 61 is within 2.4 % of the
+conducting-boundary value, and the ε_RF = ∞ control fluctuates the same as the ε_RF = 61 run
+to within its scatter. The box cannot know which boundary it is under to the precision the
+formula demands.
 
-What is implicated: the reaction field at this geometry. The RF box's ⟨ΔM²⟩ is
-only 13 % below the PME box's, where a true ε ≈ 70 under Neumann's relation
-requires ~36 % below. R_c/L here is 1.8/3.98 = 0.45, hard against the L/2
-limit; the SPC/RF literature sits near 0.3. Diagnostics in flight: the same box
-at R_c = 1.4 and 0.9 nm, and the 1.8 nm cutoff in an 8× box (R_c/L = 0.23).
-If ε falls toward 70 as R_c/L falls, the number is an artefact of running a
-1.8 nm reaction field in a box only just big enough to hold it — which the
-peptide boxes (minwall 2.6 nm, L ≳ 6 nm) do not do, but any small solvated
-system under this protocol would.
+**ε is therefore reported through ε = 1 + y**, which puts SPC at 68 and SPC/E at 73, with y
+itself, the Neumann value and its sensitivity carried alongside in the table so the choice of
+relation is never silent. Ruled out along the way, each by a control run: the analysis
+(`gmx dipoles` agrees with the in-house code), the thermostat (v-rescale gives the same y), the
+state point (298.1 K, 2 bar, 976 kg m⁻³), the cutoff-to-box ratio (0.23–0.45 makes no
+difference), and sampling length (the box dipole decorrelates in 6–8 ps, so a 1 ns segment
+holds ~100 independent samples and the cumulative estimate is flat from 5 ns; truncation would
+in any case bias ε *low*).

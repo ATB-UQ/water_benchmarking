@@ -6,8 +6,13 @@
 > complete and changed three things — see README "What Step 0 established". A local `emin` on the
 > real box finished successfully and relieved the seam contacts (0.2345 -> 0.2534 nm).
 >
-> **What is left is the expensive part: submitting to Gadi and Setonix, then analysing.**
-> Resume at section 4 (Gadi) and section 6 (Setonix).
+> **Update, later on 2026-08-27.** Setonix/GROMACS is complete for both models (10 ns each) and
+> analysed. Gadi/GROMOS production runs as ten concurrent 1 ns replicates per model (the chained
+> ladder would have taken two days); a collector pulls them back as they finish. The dielectric
+> constant first read 2× the literature; resolved as a property of the Neumann finite-ε_RF
+> relation near its pole, not of the simulations — see README. Remaining: Gadi collection and
+> analysis, then `water-bench report`; push to the ATB-UQ remote; commit the superproject's
+> `siblings.txt`/`.gitignore` rows.
 >
 > Two findings that changed the plan:
 > - gromos++ `epsilon`/`diffus`/`check_box` refuse to run on a solvent-only system (every gather
