@@ -70,49 +70,48 @@ def _fluctuation_to_si(mean_sq: float, volume_nm3: float, temperature: float) ->
     return numerator / denominator
 
 
-def dielectric_constant(
-    frames: Iterable,
-    charges: Sequence[float],
+def from_dipoles(
+    dipoles: np.ndarray,
+    volumes: np.ndarray,
+    times: np.ndarray,
     temperature: float = protocol.TEMPERATURE,
     eps_rf: float = protocol.EPSILON_RF,
     running_every: int = 100,
 ) -> DielectricResult:
-    """Static permittivity from a trajectory."""
-    charges = np.asarray(charges, dtype=float)
-    dipoles = []
-    volumes = []
-    times = []
-    for frame in frames:
-        dipoles.append(total_dipole(frame.positions, charges))
-        volumes.append(frame.volume)
-        times.append(frame.time)
+    """Static permittivity from an already-extracted series of box dipoles.
 
-    dipoles_arr = np.asarray(dipoles)
-    volumes_arr = np.asarray(volumes)
-    times_arr = np.asarray(times)
-    if len(dipoles_arr) < 2:
+    This is the real entry point: the box dipole is three numbers a frame, so a
+    streaming pass over the trajectory can keep the whole series cheaply while the
+    positions it came from are discarded.
+    """
+    dipoles = np.asarray(dipoles, dtype=float)
+    volumes = np.asarray(volumes, dtype=float)
+    times = np.asarray(times, dtype=float)
+    if len(dipoles) < 2:
         raise ValueError("need at least two frames for a dielectric constant")
 
-    def epsilon_from(slice_end: int) -> float:
-        m = dipoles_arr[:slice_end]
+    def epsilon_from(end: int) -> float:
+        m = dipoles[:end]
         mean_sq = float((m**2).sum(axis=1).mean() - (m.mean(axis=0) ** 2).sum())
-        volume = float(volumes_arr[:slice_end].mean())
-        return _solve_epsilon(_fluctuation_to_si(mean_sq, volume, temperature), eps_rf)
+        return _solve_epsilon(
+            _fluctuation_to_si(mean_sq, float(volumes[:end].mean()), temperature), eps_rf
+        )
 
-    running_points = range(running_every, len(dipoles_arr) + 1, running_every)
-    running = np.array([epsilon_from(n) for n in running_points])
-    running_times = times_arr[[n - 1 for n in running_points]] if len(running) else times_arr[:0]
+    points = range(running_every, len(dipoles) + 1, running_every)
+    running = np.array([epsilon_from(n) for n in points])
+    running_times = times[[n - 1 for n in points]] if len(running) else times[:0]
 
-    mean_sq_total = float((dipoles_arr**2).sum(axis=1).mean() - (dipoles_arr.mean(axis=0) ** 2).sum())
-    epsilon = epsilon_from(len(dipoles_arr))
+    mean_sq_total = float(
+        (dipoles**2).sum(axis=1).mean() - (dipoles.mean(axis=0) ** 2).sum()
+    )
+    epsilon = epsilon_from(len(dipoles))
 
-    # Error from block averaging on M^2: the fluctuation, not the mean dipole, is
-    # what carries the statistical uncertainty.
-    m_squared = (dipoles_arr**2).sum(axis=1)
-    block = errors.block_average(m_squared)
-    volume = float(volumes_arr.mean())
+    # The uncertainty lives in the fluctuation, not the mean dipole, so the block
+    # average is taken on M^2 and propagated through the relation.
+    block = errors.block_average((dipoles**2).sum(axis=1))
     shifted = _solve_epsilon(
-        _fluctuation_to_si(mean_sq_total + block.error, volume, temperature), eps_rf
+        _fluctuation_to_si(mean_sq_total + block.error, float(volumes.mean()), temperature),
+        eps_rf,
     )
     return DielectricResult(
         epsilon=epsilon,
@@ -120,4 +119,24 @@ def dielectric_constant(
         mean_square_fluctuation=mean_sq_total,
         running=running,
         times=running_times,
+    )
+
+
+def dielectric_constant(
+    frames: Iterable,
+    charges: Sequence[float],
+    temperature: float = protocol.TEMPERATURE,
+    eps_rf: float = protocol.EPSILON_RF,
+    running_every: int = 100,
+) -> DielectricResult:
+    """Static permittivity straight from a trajectory."""
+    charges = np.asarray(charges, dtype=float)
+    dipoles, volumes, times = [], [], []
+    for frame in frames:
+        dipoles.append(total_dipole(frame.positions, charges))
+        volumes.append(frame.volume)
+        times.append(frame.time)
+    return from_dipoles(
+        np.asarray(dipoles), np.asarray(volumes), np.asarray(times),
+        temperature=temperature, eps_rf=eps_rf, running_every=running_every,
     )

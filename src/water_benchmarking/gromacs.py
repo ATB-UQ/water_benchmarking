@@ -16,8 +16,12 @@ Two traps are handled explicitly and neither is obvious from the .mdp:
 """
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Sequence
+
+import numpy as np
 
 from . import imd, protocol
 
@@ -296,6 +300,32 @@ def submit(model: str, local_dir: Path, dry_run: bool = False) -> str:
 TRJCONV_GROUP = "System"
 
 
+LOCAL_GMX = GROMACS_PREFIX / "bin" / "gmx"
+LOCAL_GMXLIB = GROMACS_PREFIX / "share" / "gromacs" / "top"
+
+
+def collect(model: str, local_dir: Path) -> list[Path]:
+    """Pull one model's results back from Setonix.
+
+    The compressed .xtc comes back rather than a converted .g96: the same 1 ns
+    segment is ~220 MB as .xtc and ~2.8 GB as text, and the conversion is done
+    locally anyway.  Ten segments per model is then a 2.2 GB transfer instead of 28.
+    """
+    import subprocess
+
+    local_dir.mkdir(parents=True, exist_ok=True)
+    remote = f"{SETONIX['remote_root']}/{model}"
+    patterns = " ".join(
+        f"{remote}/{name}" for name in ("md_*.xtc", "md_*.tpr", "md_*.edr", "eq3.edr", "*.out")
+    )
+    subprocess.run(
+        ["scp", "-q", "-o", "BatchMode=yes",
+         f"{SETONIX['ssh_alias']}:\"{patterns}\"", str(local_dir)],
+        check=True,
+    )
+    return sorted(local_dir.glob("md_*.xtc"))
+
+
 def to_g96(xtc: Path, tpr: Path, output: Path, remote_host: str | None = None) -> Path:
     """Convert a GROMACS trajectory to the g96 format trc.py reads.
 
@@ -319,8 +349,36 @@ def to_g96(xtc: Path, tpr: Path, output: Path, remote_host: str | None = None) -
             check=True, capture_output=True, text=True,
         )
     else:
-        subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+        environment = dict(os.environ, GMXLIB=str(LOCAL_GMXLIB))
+        subprocess.run(command, shell=True, check=True, capture_output=True,
+                       text=True, env=environment)
     return output
+
+
+def energy_series(edr_files: Sequence[Path], properties: Sequence[str]) -> dict:
+    """Per-frame series for the named energy terms, via `gmx energy`.
+
+    The GROMACS counterpart of ene_ana; density and potential energy come from
+    here for both engines rather than from the trajectory.
+    """
+    import subprocess
+    import tempfile
+
+    series: dict[str, list] = {name: [] for name in properties}
+    environment = dict(os.environ, GMXLIB=str(LOCAL_GMXLIB))
+    for edr in edr_files:
+        with tempfile.TemporaryDirectory() as work:
+            output = Path(work) / "e.xvg"
+            selection = "\n".join(properties) + "\n\n"
+            subprocess.run(
+                [str(LOCAL_GMX), "energy", "-f", str(edr), "-o", str(output)],
+                input=selection, capture_output=True, text=True, check=True,
+                env=environment,
+            )
+            data = np.loadtxt(output, comments=("#", "@"))
+            for index, name in enumerate(properties):
+                series[name].append(np.atleast_2d(data)[:, index + 1])
+    return {name: np.concatenate(values) for name, values in series.items()}
 
 
 def assert_whole_molecules(frame, tolerance: float = 0.02) -> None:
