@@ -6,19 +6,13 @@
 > complete and changed three things — see README "What Step 0 established". A local `emin` on the
 > real box finished successfully and relieved the seam contacts (0.2345 -> 0.2534 nm).
 >
-> **Update, later on 2026-08-27.** Setonix/GROMACS is complete for both models (10 ns each) and
-> analysed. Gadi/GROMOS production runs as ten concurrent 1 ns replicates per model (the chained
-> ladder would have taken two days); a collector pulls them back as they finish. The dielectric
-> constant first read 2× the literature; resolved as a property of the Neumann finite-ε_RF
-> relation near its pole, not of the simulations — see README. Remaining: Gadi collection and
-> analysis, then `water-bench report`; push to the ATB-UQ remote; commit the superproject's
-> `siblings.txt`/`.gitignore` rows.
->
-> Two findings that changed the plan:
-> - gromos++ `epsilon`/`diffus`/`check_box` refuse to run on a solvent-only system (every gather
->   method needs a solute), so there are **no GROMOS-side cross-checks**. GROMACS is the cross-check.
-> - GROMACS and GROMOS agree to **0.013 %** on a single-point energy of the same configuration,
->   so the engine mirror is trustworthy before a single ns is burned.
+> **Update, 2026-08-28.** Done. Both engines complete and analysed for both models (GROMACS on
+> Setonix GPU, GROMOS on Gadi as ten concurrent 1 ns replicates); `results/summary.md`,
+> `results/diagnostics.md` and the figures are final and pushed. The dielectric constant is read
+> through the boundary each engine realises (GROMOS: Neumann at ε_RF = 61; GROMACS: conducting,
+> confirmed on GPU and CPU kernels alike) — see README. Open question, not pursued here: why
+> GROMACS's reaction field does not realise the finite-ε_RF boundary GROMOS's does (next test:
+> GROMOS at ε_RF → ∞). Still to do in the superproject: commit the `siblings.txt`/`.gitignore` rows.
 
 Ordered checklist. Full rationale in `~/.claude/plans/benchmark-two-classical-md-whimsical-dahl.md`.
 Fixed decisions: **N = 2048** (a ≈ 3.95 nm; 1024 violates minimum image at 1.8 nm), **10 × 1 ns
