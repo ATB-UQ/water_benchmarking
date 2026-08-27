@@ -43,17 +43,28 @@ def _finish(axes, path: Path) -> Path:
     return path
 
 
-def dielectric_convergence(runs: Mapping[str, object], output: Path) -> Path:
+def dielectric_convergence(runs: Mapping[str, object], output: Path,
+                           relations: Mapping[str, str] | None = None) -> Path:
     """Running epsilon against time -- the plot that says whether to believe it.
 
     A flat tail means the estimate has converged; a curve still climbing at the end
-    of the run means the number in the table is a lower bound, not a result.
+    of the run means the number in the table is a lower bound, not a result.  Each
+    run is drawn through the relation its table entry uses (the running series is
+    stored as eps = 1 + y and re-mapped through Neumann's relation where that is
+    the run's relation), so the curve ends at the number in the table.
     """
+    from .. import protocol
+    from .dielectric import _solve_epsilon
+
     _figure, axes = plt.subplots(figsize=(6, 4))
     for key, summary in runs.items():
         eps = summary.dielectric
-        if len(eps.running):
-            axes.plot(eps.times, eps.running, **_style(key))
+        if not len(eps.running):
+            continue
+        series = eps.running
+        if relations and relations.get(key, "").lower().startswith("neumann"):
+            series = np.array([_solve_epsilon(e - 1.0, protocol.EPSILON_RF) for e in series])
+        axes.plot(eps.times, series, **_style(key))
     axes.axhline(experiment.EXPERIMENT["dielectric"].value, color="k",
                  linestyle=":", linewidth=1, label="experiment")
     axes.set_xlabel("simulated time (ps)")

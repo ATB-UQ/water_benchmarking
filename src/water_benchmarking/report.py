@@ -128,9 +128,10 @@ def write_plots(results: list[Results], output_dir: Path) -> list[Path]:
     from .analysis import plots
 
     runs = {r.key: r.summary for r in results if r.summary is not None}
+    relations = {r.key: r.values.get("dielectric_relation", "") for r in results}
     written = []
     if runs:
-        written.append(plots.dielectric_convergence(runs, output_dir / "dielectric.png"))
+        written.append(plots.dielectric_convergence(runs, output_dir / "dielectric.png", relations))
         written.append(plots.mean_squared_displacement(runs, output_dir / "msd.png"))
         written.append(plots.rotational_correlation(runs, output_dir / "c2_HH.png"))
     series = {r.key: r.density_series for r in results if r.density_series is not None}

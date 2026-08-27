@@ -27,31 +27,37 @@ wall time of one.
 
 ## Results
 
-GROMACS, 10 ns per model. GROMOS: pending. Full tables and figures in [`results/`](results/).
+10 ns per model and engine (GROMOS: ten 1 ns replicates; GROMACS: ten chained 1 ns segments).
+Full tables, per-run details and figures in [`results/`](results/).
 
-| Property | SPC | SPC/E | Experiment |
-|---|---|---|---|
-| Density (kg m⁻³) | 976.0 | 997.4 | 997.05 |
-| ΔH_vap (kJ mol⁻¹) | 44.19 | 49.27 (44.05 with the SPC/E polarisation correction) | 43.99 |
-| D (10⁻⁹ m² s⁻¹, Yeh–Hummer corrected) | 4.31 | 2.75 | 2.30 |
-| τ₂(HH) (ps) | 1.17 | 1.99 | 2.0 |
-| ε | 66.3 ± 1.7 | 69.4 ± 1.5 | 78.4 |
+| Property | SPC GROMOS | SPC GROMACS | SPC/E GROMOS | SPC/E GROMACS | Experiment |
+|---|---|---|---|---|---|
+| Density (kg m⁻³) | 974.8 | 976.0 | 996.4 | 997.4 | 997.05 |
+| ΔH_vap (kJ mol⁻¹) | 44.16 | 44.19 | 49.24 | 49.27 | 43.99 |
+| ΔH_vap, SPC/E polarisation-corrected | – | – | 44.02 | 44.05 | 43.99 |
+| D (10⁻⁹ m² s⁻¹, Yeh–Hummer corrected) | 4.45 | 4.31 | 2.78 | 2.75 | 2.30 |
+| τ₂(HH) (ps) | 1.16 | 1.17 | 1.96 | 1.98 | 2.0 |
+| ε | 68 ± 2 | 66 ± 2 | 70 ± 2 | 69 ± 2 | 78.4 |
 
-Both models behave as published: SPC/E reproduces density and (corrected) ΔH_vap to within
-0.1 %, diffuses 20 % too fast and reorients at the experimental rate; SPC is 2 % light, diffuses
-nearly twice too fast and reorients in half the time. Both underestimate ε by 12–15 %.
-Statistical errors are below the last digit shown except where given.
+The two engines agree to within 0.1 % on density and ΔH_vap, 1–3 % on D and τ₂, and 2–3 % on ε.
+Both models behave as published: SPC/E reproduces density and (corrected) ΔH_vap to within 0.1 %,
+diffuses 20 % too fast and reorients at the experimental rate; SPC is 2 % light, diffuses nearly
+twice too fast and reorients in half the time. Both underestimate ε by 11–15 %. Statistical errors
+are below the last digit shown except where given.
 
-**The dielectric constant is reported through ε = 1 + y**, where y = (⟨M²⟩−⟨M⟩²)/(3ε₀VkT).
-The textbook finite-ε_RF relation (Neumann) gives ~140 for the same trajectories: at ε_RF = 61 it
-has a pole at y = 123, fifty units from where water sits, and it presumes an ε_RF dependence of
-the fluctuation that the force field cannot carry (k_rf at ε_RF = 61 is within 2.4 % of the
-conducting-boundary value). Controls varying thermostat, cutoff (0.9–1.8 nm), box (2048–16384
-waters) and boundary condition (ε_RF = 61, ∞, PME) all give y = 59–76; see
-[`results/diagnostics.md`](results/diagnostics.md). The same controls show density, ΔH_vap, D and
-τ₂ invariant to within 1 % — except at a 0.9 nm cutoff, which lowers the density 1 %, D 7 % and
-slows reorientation 8 %; 1.4 nm is indistinguishable from 1.8. Anyone computing ε from an ATB reaction-field
-trajectory with the finite-ε_RF formula will get roughly double the true value.
+**The dielectric constant is read through the boundary condition each engine realises.** What is
+measured is the dimensionless box-dipole fluctuation y = (⟨M²⟩−⟨M⟩²)/(3ε₀VkT); the relation that
+turns it into ε depends on the electrostatic boundary. GROMOS honours the finite ε_RF = 61: its
+fluctuation is 35 % below the conducting-boundary value, exactly as Neumann's relation
+(ε−1)(2ε_RF+1)/(2ε_RF+ε) = y predicts for ε ≈ 70, and that relation gives 68 / 70. The GROMACS
+runs (GPU) show no ε_RF dependence — ε_RF = 61 and ε_RF = ∞ fluctuate alike, as does PME — so the
+conducting-boundary relation ε = 1 + y describes them, giving 66 / 69. Each read through the
+other's relation is wrong by a factor of ~2 (GROMOS 44, GROMACS 140), and the Neumann relation is
+in any case unstable near y ≈ 65 (a pole at y = 123, dε/dy ≈ 2.5–5). `results/summary.md` records y
+and both readings beside every number. Controls varying thermostat, cutoff (0.9–1.8 nm) and box
+(2048–16384 waters) leave y unchanged within scatter — and leave density, ΔH_vap, D and τ₂ within
+1 % — except a 0.9 nm cutoff, which lowers the density 1 %, D 7 % and slows reorientation 8 %;
+see [`results/diagnostics.md`](results/diagnostics.md).
 
 ## What a pure-solvent system needs
 
