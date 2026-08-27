@@ -228,8 +228,12 @@ def slurm_script(model: str, remote_dir: str) -> str:
 
     previous = f"water_{protocol.N_WATERS}.gro"
     for stage in ladder:
-        # -nb/-bonded only: -pme gpu is a fatal error under a reaction field.
-        offload = "" if stage.minimisation else " -nb gpu -bonded gpu"
+        # -nb only.  Two flags that the peptide runs use are wrong here:
+        #   -pme gpu is a fatal error under a reaction field (there is no PME);
+        #   -bonded gpu is a fatal error in rigid water, which has no bonded
+        #     interactions whatsoever -- SETTLE is a constraint, not a bonded term
+        #     ("Bonded interactions can not be computed on a GPU").
+        offload = "" if stage.minimisation else " -nb gpu"
         # -maxwarn 3 covers exactly three warnings, every one of them a deliberate
         # choice made to match GROMOS rather than an oversight:
         #   1. Berendsen thermostat is deprecated -- but it is what GROMOS weak
