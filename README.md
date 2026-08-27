@@ -48,7 +48,9 @@ has a pole at y = 123, fifty units from where water sits, and it presumes an ε_
 the fluctuation that the force field cannot carry (k_rf at ε_RF = 61 is within 2.4 % of the
 conducting-boundary value). Controls varying thermostat, cutoff (0.9–1.8 nm), box (2048–16384
 waters) and boundary condition (ε_RF = 61, ∞, PME) all give y = 59–76; see
-[`results/diagnostics.md`](results/diagnostics.md). Anyone computing ε from an ATB reaction-field
+[`results/diagnostics.md`](results/diagnostics.md). The same controls show density, ΔH_vap, D and
+τ₂ invariant to within 1 % — except at a 0.9 nm cutoff, which lowers the density 1 %, D 7 % and
+slows reorientation 8 %; 1.4 nm is indistinguishable from 1.8. Anyone computing ε from an ATB reaction-field
 trajectory with the finite-ε_RF formula will get roughly double the true value.
 
 ## What a pure-solvent system needs

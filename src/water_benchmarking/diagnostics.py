@@ -109,8 +109,13 @@ def table(protocol_row: report.Results | None, diagnostics: list[Diagnostic]) ->
         rows.append(["protocol (10 ns)", "-", f"{protocol.CUTOFF}", f"RF eps_rf = {protocol.EPSILON_RF:.0f}",
                      str(protocol.N_WATERS)] + [_cell(protocol_row.values, key, fmt) for key, _l, fmt in COLUMNS])
     for d in diagnostics:
-        rows.append([d.label + " (1 ns)", d.changed, f"{d.cutoff}", d.electrostatics, str(d.n_molecules)]
-                    + [_cell(d.values, key, fmt) for key, _l, fmt in COLUMNS])
+        cells = [_cell(d.values, key, fmt) for key, _l, fmt in COLUMNS]
+        if "61" not in d.electrostatics:
+            # Neumann's finite-eps_rf relation has no meaning for a conducting
+            # boundary or PME; printing it there would only invite comparison.
+            cells[[k for k, _l, _f in COLUMNS].index("dielectric_neumann")] = "-"
+        rows.append([d.label + " (1 ns)", d.changed, f"{d.cutoff}", d.electrostatics,
+                     str(d.n_molecules)] + cells)
     rows.append(["experiment", "-", "-", "-", "-"] + [
         fmt.format(experiment.EXPERIMENT[key].value * report.SCALE.get(key, 1.0))
         if key in experiment.EXPERIMENT else "-" for key, _l, fmt in COLUMNS])
