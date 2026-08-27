@@ -14,9 +14,10 @@ PROPERTIES = (
     ("diffusion", "Self-diffusion D", "1e-9 m^2 s^-1", "{:.2f}"),
     ("tau2_HH", "Rot. corr. time tau2(HH)", "ps", "{:.2f}"),
     ("tau1_dipole", "Rot. corr. time tau1(mu)", "ps", "{:.2f}"),
-    ("dielectric", "Dielectric constant (eps = 1 + y)", "-", "{:.1f}"),
-    ("dielectric_y", "  dipole fluctuation y", "-", "{:.1f}"),
-    ("dielectric_neumann", "  eps by Neumann(eps_rf = 61) [unstable]", "-", "{:.0f}"),
+    # eps = 1 + y.  The fluctuation y and the Neumann(eps_rf) value are still
+    # computed and kept in Results.values for anyone who wants them; the README
+    # explains why they are not the number to quote.
+    ("dielectric", "Dielectric constant", "-", "{:.1f}"),
 )
 
 #: Diffusion is reported in units of 1e-9 m^2/s to keep the table readable.
