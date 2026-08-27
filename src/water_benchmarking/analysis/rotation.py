@@ -84,6 +84,41 @@ def correlation_functions(
     return c1, c2
 
 
+#: Below this C(t) is indistinguishable from the statistical floor and must not
+#: be integrated -- it is noise around zero, and on a log plot it is the
+#: cliff-and-plateau garbage that looks like a broken analysis.
+NOISE_FLOOR = 2e-3
+
+
+def correlation_time(lags: np.ndarray, c: np.ndarray,
+                     fit_from: float = 1.0, fit_to: float | None = None) -> tuple[float, float]:
+    """tau = integral of C(t) up to the noise floor, plus the exponential tail.
+
+    Returns (tau, tau_fit).  C(t) is integrated only while it is clearly above
+    the floor; the remainder is added analytically as tau_fit * C(t_cut), using
+    the decay time fitted on the last decade above the floor.  Integrating the
+    noisy tail instead adds a random walk of area that does not average out
+    over any practical run length.
+    """
+    above = c > NOISE_FLOOR
+    cut = int(np.argmin(above)) if not above.all() else len(c)
+    cut = max(cut, 3)
+    t_cut = lags[cut - 1]
+
+    if fit_to is None:
+        fit_to = t_cut
+    window = (lags >= fit_from) & (lags <= fit_to) & (c > NOISE_FLOOR)
+    if window.sum() >= 3:
+        slope = np.polyfit(lags[window], np.log(c[window]), 1)[0]
+        tau_fit = float(-1.0 / slope) if slope < 0 else float("nan")
+    else:
+        tau_fit = float("nan")
+
+    area = float(np.trapezoid(c[:cut], lags[:cut]))
+    tail = tau_fit * float(c[cut - 1]) if tau_fit == tau_fit else 0.0
+    return area + tail, tau_fit
+
+
 def analyse(
     frames: Iterable,
     vector: str = "HH",
@@ -106,18 +141,8 @@ def analyse(
     c1, c2 = correlation_functions(vectors, max_lag_frames)
     lags = np.arange(max_lag_frames) * dt
 
-    # tau by integration: the correlation time is the area under C(t).  The tail
-    # beyond max_lag is added analytically from the fitted exponential, which
-    # matters because C_2 has only decayed to ~1e-4 by 20 ps but C_1 has not.
-    tau1 = float(np.trapezoid(c1, lags))
-    tau2 = float(np.trapezoid(c2, lags))
-
-    window = (lags >= fit_from) & (lags <= fit_to) & (c2 > 0)
-    if window.sum() >= 3:
-        slope, intercept = np.polyfit(lags[window], np.log(c2[window]), 1)
-        tau2_fit = float(-1.0 / slope)
-    else:
-        tau2_fit = float("nan")
+    tau1, _ = correlation_time(lags, c1, fit_from)
+    tau2, tau2_fit = correlation_time(lags, c2, fit_from)
 
     return RotationResult(
         lag_times=lags, c1=c1, c2=c2, tau1=tau1, tau2=tau2, tau2_fit=tau2_fit

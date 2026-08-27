@@ -33,10 +33,11 @@ from . import dielectric, diffusion, rotation
 #: Vectors whose reorientation experiment can see.
 VECTORS = ("HH", "OH", "dipole")
 
-#: Molecules sampled for the rotational correlation functions.  All 2048 would
-#: cost four times the memory for an error bar that is already far below the
-#: systematic uncertainty -- 512 molecules over 10^4 frames is ample statistics.
-ROTATION_MOLECULES = 512
+#: Molecules sampled for the rotational correlation functions: all of them.  With
+#: 512 the statistical floor of C_2 sat at ~1e-3, which on a log plot turned the
+#: tail beyond ~15 ps into cliffs and plateaus.  Using every molecule halves the
+#: floor for ~1.5 GB of peak memory, which this server has.
+ROTATION_MOLECULES = protocol.N_WATERS
 
 
 @dataclass
@@ -181,8 +182,8 @@ def analyse_run(
         c2, _ = _stack_and_average([s.c2[name] for s in summaries])
         lag = rotation_lags[: len(c2)]
         c2_mean[name] = c2
-        tau1[name] = float(np.trapezoid(c1, lag))
-        tau2[name] = float(np.trapezoid(c2, lag))
+        tau1[name], _ = rotation.correlation_time(lag, c1)
+        tau2[name], _ = rotation.correlation_time(lag, c2)
 
     # The dielectric constant wants one long series, not ten short ones; the box
     # dipole was kept during the streaming pass so nothing is re-read here.

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Mapping
 
 import matplotlib
+import numpy as np
 
 matplotlib.use("Agg")           # no display on the server
 import matplotlib.pyplot as plt  # noqa: E402
@@ -84,14 +85,21 @@ def mean_squared_displacement(runs: Mapping[str, object], output: Path) -> Path:
 def rotational_correlation(runs: Mapping[str, object], output: Path,
                            vector: str = "HH") -> Path:
     """C2(t) on a log axis, where a single-exponential decay is a straight line."""
+    from .rotation import NOISE_FLOOR
+
     _figure, axes = plt.subplots(figsize=(6, 4))
     for key, summary in runs.items():
         c2 = summary.c2.get(vector)
         if c2 is None:
             continue
         lags = summary.rotation_lags[: len(c2)]
-        positive = c2 > 0
-        axes.semilogy(lags[positive], c2[positive], **_style(key))
+        # NaN, not a mask: a masked point is skipped and the line bridges the gap,
+        # which on a log axis draws a cliff wherever C2 crosses zero.
+        shown = np.where(c2 > 0, c2, np.nan)
+        axes.semilogy(lags, shown, **_style(key))
+    axes.axhline(NOISE_FLOOR, color="grey", linestyle=":", linewidth=1,
+                 label="noise floor (integration stops)")
+    axes.set_ylim(NOISE_FLOOR / 5, 1.2)
     axes.set_xlabel("time (ps)")
     axes.set_ylabel(rf"$C_2(t)$, {vector} vector")
     axes.set_title(f"Rotational correlation, {vector}")

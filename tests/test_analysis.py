@@ -184,3 +184,23 @@ def test_dielectric_reports_the_stable_relation_and_flags_the_unstable_one():
     assert result.epsilon == pytest.approx(1 + target_y, rel=0.08)
     assert result.epsilon_neumann > 120
     assert result.neumann_sensitivity > 2.5
+
+
+def test_correlation_time_integrates_to_the_floor_and_adds_the_tail():
+    """An exact exponential with a noise floor must give its own tau, not the
+    area of the noise: exp(-t/2) truncated where it drops below the floor."""
+    lags = np.arange(0, 50, 0.1)
+    rng = np.random.default_rng(6)
+    c = np.exp(-lags / 2.0) + rng.normal(0, 5e-4, lags.size)
+    tau, tau_fit = rotation.correlation_time(lags, c)
+    assert tau == pytest.approx(2.0, rel=0.03)
+    assert tau_fit == pytest.approx(2.0, rel=0.05)
+
+
+def test_diffusion_fit_window_scales_with_the_segment():
+    """A 1 ns segment fits 100-500 ps, not a fixed tenth of it."""
+    lags = np.arange(10000) * 0.1
+    msd = 6 * 0.4 * lags
+    result = diffusion.diffusion_from_msd(lags, msd, edge=4.0)
+    assert result.fit_range == pytest.approx((99.99, 499.95), rel=1e-3)
+    assert result.linearity == pytest.approx(1.0, abs=1e-6)

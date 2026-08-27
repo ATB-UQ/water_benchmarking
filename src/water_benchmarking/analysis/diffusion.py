@@ -34,6 +34,9 @@ class DiffusionResult:
     lag_times: np.ndarray         # ps
     msd: np.ndarray               # nm^2
     fit_range: tuple[float, float]
+    #: log-log slope of the MSD across the fit window; 1.00 is diffusive.  A value
+    #: below ~0.95 means the window reaches into the sub-diffusive cage regime.
+    linearity: float = float("nan")
 
 
 def unwrap(centres: np.ndarray, edges: np.ndarray) -> np.ndarray:
@@ -102,20 +105,33 @@ def mean_squared_displacement(frames: Iterable) -> tuple[np.ndarray, np.ndarray,
     return lags, msd, float(edges_arr.mean())
 
 
+#: Fit window as a fraction of the longest lag.  The lower bound clears the
+#: ballistic and cage-rattling regime by a wide margin; the upper bound stops
+#: where the number of time origins per lag has fallen to half and the MSD
+#: starts to get noisy.  For a 1 ns segment this is 100-500 ps.
+FIT_WINDOW = (0.10, 0.50)
+
+
 def diffusion_from_msd(
     lag_times: np.ndarray,
     msd: np.ndarray,
     edge: float,
-    fit_from: float = 10.0,
-    fit_to: float = 100.0,
+    fit_from: float | None = None,
+    fit_to: float | None = None,
     temperature: float = protocol.TEMPERATURE,
     viscosity: float = WATER_VISCOSITY,
 ) -> DiffusionResult:
     """Einstein fit of the MSD, plus the finite-size correction.
 
-    The fit deliberately starts at 10 ps: below that the motion is still partly
-    ballistic and cage-rattling, and a fit through the origin would overestimate D.
+    The window defaults to a fixed fraction of the available lag range rather
+    than fixed times, so it scales with the segment length and is not
+    accidentally a tenth of the data.
     """
+    longest = float(lag_times[-1])
+    if fit_from is None:
+        fit_from = FIT_WINDOW[0] * longest
+    if fit_to is None:
+        fit_to = FIT_WINDOW[1] * longest
     window = (lag_times >= fit_from) & (lag_times <= fit_to)
     if window.sum() < 3:
         raise ValueError(
@@ -123,6 +139,8 @@ def diffusion_from_msd(
             "trajectory is too short or too coarsely sampled"
         )
     slope, _intercept = np.polyfit(lag_times[window], msd[window], 1)
+    positive = window & (lag_times > 0) & (msd > 0)
+    linearity = float(np.polyfit(np.log(lag_times[positive]), np.log(msd[positive]), 1)[0])
     # MSD in nm^2 vs ps; 6D = slope for three dimensions.
     d_pbc = slope / 6.0 * 1e-18 / 1e-12          # nm^2/ps -> m^2/s
 
@@ -148,4 +166,5 @@ def diffusion_from_msd(
         lag_times=lag_times,
         msd=msd,
         fit_range=(fit_from, fit_to),
+        linearity=linearity,
     )
