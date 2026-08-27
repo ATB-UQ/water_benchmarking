@@ -65,11 +65,15 @@ def analyse_run(model: str, engine: str, run_dir: Path) -> report.Results:
     """
     results = report.Results(model=model, engine=engine)
     charges = forcefield.EXPECTED_CHARGES[model]
+    # GROMOS production is ten independent replicates with fresh velocities, so
+    # the head of each is discarded; the GROMACS segments are one continuous
+    # trajectory already past its equilibration and lose nothing.
+    discard = 0.1 if engine == "gromos" else 0.0
 
     if engine == "gromos":
         energies = sorted(run_dir.glob("md_*.tre*"))
         if energies:
-            thermo = density_hov.analyse(energies, model, run_dir / "analysis")
+            thermo = density_hov.analyse(energies, model, run_dir / "analysis", discard=discard)
             _record_thermodynamics(results, thermo)
             results.density_series = thermo.density_series
         trajectories = sorted(run_dir.glob("md_*.trc*"))
@@ -82,7 +86,7 @@ def analyse_run(model: str, engine: str, run_dir: Path) -> report.Results:
         trajectories = _gromacs_segments(run_dir)
 
     if trajectories:
-        summary = aggregate.analyse_run(trajectories, charges)
+        summary = aggregate.analyse_run(trajectories, charges, discard=discard)
         results.summary = summary
         results.values["diffusion"] = summary.diffusion.d_corrected
         results.values["diffusion_pbc"] = summary.diffusion.d_pbc

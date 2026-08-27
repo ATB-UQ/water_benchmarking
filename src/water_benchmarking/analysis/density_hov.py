@@ -69,14 +69,25 @@ def analyse(
     work_dir: Path,
     n_molecules: int = protocol.N_WATERS,
     temperature: float = protocol.TEMPERATURE,
+    discard: float = 0.1,
 ) -> ThermodynamicsResult:
     """Density, potential energy and heat of vaporisation for one model."""
-    series = run_ene_ana(energy_files, ("densit", "totpot", "pressu"), work_dir)
+    # One ene_ana call per file, and the leading fraction dropped from each: the
+    # GROMOS production runs are independent replicates that each start from
+    # freshly drawn velocities, so every one has its own short re-thermalisation.
+    # Dropping the head of the concatenation would discard all of the first
+    # replicate and none of the others.
+    collected = {name: [] for name in ("densit", "totpot", "pressu")}
+    for index, energy_file in enumerate(energy_files):
+        series = run_ene_ana([energy_file], tuple(collected), work_dir / f"seg{index:02d}")
+        for name, values in series.items():
+            collected[name].append(errors.drop_equilibration(values, discard))
+    series = {name: np.concatenate(values) for name, values in collected.items()}
 
-    density = errors.block_average(errors.drop_equilibration(series["densit"]))
-    per_molecule = errors.drop_equilibration(series["totpot"]) / n_molecules
+    density = errors.block_average(series["densit"])
+    per_molecule = series["totpot"] / n_molecules
     energy = errors.block_average(per_molecule)
-    pressure = errors.block_average(errors.drop_equilibration(series["pressu"]))
+    pressure = errors.block_average(series["pressu"])
 
     hov = -energy.mean + GAS_CONSTANT * temperature
     corrected = hov - SPCE_POLARISATION_CORRECTION if model == "spce" else None

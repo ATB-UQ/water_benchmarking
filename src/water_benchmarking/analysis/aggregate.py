@@ -58,6 +58,7 @@ class SegmentSummary:
 def analyse_segment(
     frames: Iterable,
     charges: Sequence[float],
+    discard: float = 0.0,
     # 50 ps, not 20: tau_1 of the dipole is 3-8 ps and is taken as the integral
     # of C_1, which at 20 ps still had a few percent of its area outstanding.
     max_lag: float = 50.0,
@@ -70,6 +71,13 @@ def analyse_segment(
     charges = np.asarray(charges, dtype=float)
     centres, vectors, dipoles, volumes, times = [], {v: [] for v in VECTORS}, [], [], []
     selection = None
+
+    frames = list(frames) if discard else frames
+    if discard:
+        # Independent replicates re-thermalise after their fresh velocities; the
+        # head of each is not equilibrium and is dropped before any correlation
+        # is computed, so it cannot leak in through a time origin.
+        frames = frames[int(len(frames) * discard):]
 
     for index, frame in enumerate(frames):
         if check_whole and index == 0:
@@ -151,6 +159,7 @@ def analyse_run(
     charges: Sequence[float],
     n_molecules: int = protocol.N_WATERS,
     temperature: float = protocol.TEMPERATURE,
+    discard: float = 0.0,
 ) -> RunSummary:
     """Analyse every segment of one run and combine them.
 
@@ -166,7 +175,7 @@ def analyse_run(
         source = segment if callable(segment) else (
             lambda path=segment: read_frames(path, n_molecules)
         )
-        summaries.append(analyse_segment(source(), charges))
+        summaries.append(analyse_segment(source(), charges, discard=discard))
     if not summaries:
         raise ValueError("no trajectories to analyse")
 
