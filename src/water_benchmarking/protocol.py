@@ -64,11 +64,19 @@ GJW_LIB = Path(
 SOURCE_WATER_BOX = GJW_LIB / "H2O_box.g96"      # 5384 SPC, cubic 5.4937 nm
 FORCEFIELD_MTB = GJW_LIB / "54A7.mtb"
 FORCEFIELD_IFP = GJW_LIB / "54A7.ifp"
-# The ene_ana library MUST be the one shipped with this md++ build.  The copy in
-# gromos_job_wrapper carries the same ENEVERSION stamp (2023-04-15) but fails to
-# parse this build's .tre with "Tried to read an integer for NUM_EDS_STATES" --
-# the version stamp does not identify the block layout.
-ENE_ANA_LIB = Path("/opt/gromos/1.6.0/share/md++/ene_ana.md++.lib")
+# There is no single right ene_ana library.  Two md++ builds of the same
+# nominal version write .tre files with different block layouts under the same
+# ENEVERSION stamp (2023-04-15): the local /opt/gromos/1.6.0 md parses only with
+# the library shipped beside it, and the gadi md_mpi build only with the copy in
+# gromos_job_wrapper.  Each fails on the other with "Tried to read an integer for
+# NUM_..." -- the stamp does not identify the layout, so the library is chosen
+# per file by trying each until one parses.
+ENE_ANA_LIBS = (
+    Path("/opt/gromos/1.6.0/share/md++/ene_ana.md++.lib"),
+    GJW_LIB / "ene_ana.md++.lib",
+    GJW_LIB / "ene_ana_2015-06-23-A.md++.lib",
+)
+ENE_ANA_LIB = ENE_ANA_LIBS[0]   # kept for callers that only want a default
 
 GROMOS_BIN = Path("/opt/gromos/1.6.0/bin")
 GADI_MD_SHIM = Path("/home/atb/ATB/gromos_job_wrapper/deployment/gadi_md.sh")

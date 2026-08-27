@@ -82,8 +82,13 @@ def read_frames(path: Path, n_molecules: int = protocol.N_WATERS) -> Iterator[Fr
             elif block in ("GENBOX", "BOX"):
                 genbox.extend(float(x) for x in fields)
 
-        if coords and len(coords) == n_atoms:
-            raise ValueError(f"{path}: trailing frame with no GENBOX block")
+        if coords:
+            # A run killed mid-write (a walltime kill, say) leaves a last frame
+            # with some or all of its positions and no box.  Everything before
+            # it is intact and is what has been yielded; the fragment is dropped
+            # rather than failing the whole segment.
+            import warnings
+            warnings.warn(f"{path}: dropped a truncated trailing frame ({len(coords)} atoms)")
 
 
 def read_all(paths: Iterable[Path], n_molecules: int = protocol.N_WATERS) -> Iterator[Frame]:

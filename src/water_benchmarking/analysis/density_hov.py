@@ -41,26 +41,36 @@ class ThermodynamicsResult:
 
 
 def run_ene_ana(energy_files: Sequence[Path], properties: Sequence[str], work_dir: Path) -> dict:
-    """Run gromos++ ene_ana and read back the per-frame series it writes."""
-    work_dir.mkdir(parents=True, exist_ok=True)
-    command = [
-        str(protocol.GROMOS_BIN / "ene_ana"),
-        # ene_ana runs in work_dir (it writes <prop>.dat into the cwd), so every
-        # input path has to be absolute or it would be resolved against work_dir.
-        "@en_files", *[str(Path(f).resolve()) for f in energy_files],
-        "@prop", *properties,
-        "@library", str(protocol.ENE_ANA_LIB),
-    ]
-    subprocess.run(command, cwd=work_dir, capture_output=True, text=True, check=True)
+    """Run gromos++ ene_ana and read back the per-frame series it writes.
 
-    series = {}
-    for prop in properties:
-        path = work_dir / f"{prop}.dat"
-        if not path.exists():
-            raise FileNotFoundError(f"ene_ana wrote no {path.name}")
-        data = np.loadtxt(path, comments="#")
-        series[prop] = data[:, 1] if data.ndim == 2 else data
-    return series
+    The library is chosen by parse test: each candidate is tried until ene_ana
+    produces the requested series.  A wrong library does not read garbage, it
+    fails outright, which is what makes the trial safe.
+    """
+    work_dir.mkdir(parents=True, exist_ok=True)
+    failures = []
+    for library in protocol.ENE_ANA_LIBS:
+        command = [
+            str(protocol.GROMOS_BIN / "ene_ana"),
+            # ene_ana runs in work_dir (it writes <prop>.dat into the cwd), so
+            # every input path has to be absolute.
+            "@en_files", *[str(Path(f).resolve()) for f in energy_files],
+            "@prop", *properties,
+            "@library", str(library),
+        ]
+        result = subprocess.run(command, cwd=work_dir, capture_output=True, text=True)
+        if result.returncode == 0 and all((work_dir / f"{p}.dat").exists() for p in properties):
+            series = {}
+            for prop in properties:
+                data = np.loadtxt(work_dir / f"{prop}.dat", comments="#")
+                series[prop] = data[:, 1] if data.ndim == 2 else data
+            return series
+        failures.append(f"{library.name}: {result.stderr.strip().splitlines()[-1] if result.stderr.strip() else 'no output'}")
+        for prop in properties:
+            (work_dir / f"{prop}.dat").unlink(missing_ok=True)
+    raise RuntimeError(
+        f"no ene_ana library parses {[Path(f).name for f in energy_files]}:\n  " + "\n  ".join(failures)
+    )
 
 
 def analyse(
