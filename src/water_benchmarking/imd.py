@@ -26,6 +26,8 @@ class Stage:
     write_every: int
     minimisation: bool = False
     initial_time: float = 0.0
+    #: 1-based index when this stage is one of several independent replicates.
+    replicate: int = 0
 
 
 def run_ladder() -> list[Stage]:
@@ -37,16 +39,21 @@ def run_ladder() -> list[Stage]:
     for name, steps, temperature, barostat, gen_vel in protocol.EQ_STAGES:
         stages.append(Stage(name, steps, temperature, barostat, gen_vel,
                             protocol.EQUILIBRATION_WRITE))
-    for segment in range(1, protocol.PRODUCTION_SEGMENTS + 1):
+    for replicate in range(1, protocol.PRODUCTION_SEGMENTS + 1):
         stages.append(
             Stage(
-                f"md_{segment:02d}",
+                f"md_{replicate:02d}",
                 protocol.PRODUCTION_STEPS,
                 protocol.TEMPERATURE,
                 True,
-                False,
-                protocol.PRODUCTION_WRITE,
-                initial_time=(segment - 1) * protocol.PRODUCTION_STEPS * protocol.TIMESTEP,
+                # Fresh velocities per replicate: all ten start from the same
+                # equilibrated box, so identical seeds would give identical
+                # trajectories.  Water reorients in picoseconds, so the cost is a
+                # short re-equilibration at the head of each, which the analysis
+                # discards.
+                generate_velocities=True,
+                write_every=protocol.PRODUCTION_WRITE,
+                replicate=replicate,
             )
         )
     return stages
@@ -104,6 +111,7 @@ def render(stage: Stage, model: str, title: str) -> str:
     pairlist_algorithm = 0 if stage.minimisation else 1
     generate = 1 if stage.generate_velocities else 0
     initial_temperature = stage.temperature if stage.generate_velocities else 0.0
+    seed = protocol.seed(model, stage.replicate)
 
     blocks = [
         f"TITLE\n{title}\nEND\n",
@@ -119,7 +127,7 @@ END
 """,
         f"""INITIALISE
 #    NTIVEL   NTISHK   NTINHT    NTINHB    NTISHI  NTIRTC     NTICOM   NTISTI      IG     TEMPI
-      {generate}       0        0         0         0       0          0        0       {protocol.seed(model)}     {initial_temperature:.2f}
+      {generate}       0        0         0         0       0          0        0       {seed}     {initial_temperature:.2f}
 END
 """,
         f"""BOUNDCOND

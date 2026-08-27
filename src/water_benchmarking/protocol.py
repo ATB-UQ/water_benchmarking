@@ -76,5 +76,13 @@ GADI_MD_SHIM = Path("/home/atb/ATB/gromos_job_wrapper/deployment/gadi_md.sh")
 RUN_ROOT = Path("/ssd1_nas_md/water_benchmarking")
 
 
-def seed(model: str) -> int:
-    return SEED_BASE + sorted(MODELS).index(model)
+def seed(model: str, replicate: int = 0) -> int:
+    """Velocity seed for one model, optionally for one production replicate.
+
+    Production is run as ten independent 1 ns replicates rather than one chained
+    10 ns trajectory: they queue concurrently, so the wall time is one segment
+    rather than ten.  That only works if each draws its own velocities -- started
+    from the same equilibrated box with the same seed they would be ten copies of
+    the same trajectory.
+    """
+    return SEED_BASE + 100 * sorted(MODELS).index(model) + replicate

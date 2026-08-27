@@ -144,18 +144,26 @@ class RunSummary:
 
 
 def analyse_run(
-    trajectories: Sequence[Path],
+    segments: Sequence,
     charges: Sequence[float],
     n_molecules: int = protocol.N_WATERS,
     temperature: float = protocol.TEMPERATURE,
 ) -> RunSummary:
-    """Analyse every segment of one run and combine them."""
+    """Analyse every segment of one run and combine them.
+
+    `segments` is a sequence of either paths or zero-argument callables returning
+    an iterable of frames.  The callable form exists so the GROMACS path can
+    convert a .xtc, stream it, and delete the 2.8 GB text file again before the
+    next one is made -- converting all ten up front would need 28 GB per model.
+    """
     from ..trc import read_frames
 
-    summaries = [
-        analyse_segment(read_frames(path, n_molecules), charges)
-        for path in trajectories
-    ]
+    summaries = []
+    for segment in segments:
+        source = segment if callable(segment) else (
+            lambda path=segment: read_frames(path, n_molecules)
+        )
+        summaries.append(analyse_segment(source(), charges))
     if not summaries:
         raise ValueError("no trajectories to analyse")
 

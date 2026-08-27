@@ -79,7 +79,7 @@ def analyse_run(model: str, engine: str, run_dir: Path) -> report.Results:
             series = gromacs.energy_series(energies, ("Density", "Potential"))
             _record_gromacs_thermodynamics(results, series, model)
             results.density_series = series["Density"]
-        trajectories = _converted_trajectories(run_dir)
+        trajectories = _gromacs_segments(run_dir)
 
     if trajectories:
         summary = aggregate.analyse_run(trajectories, charges)
@@ -122,22 +122,29 @@ def _record_gromacs_thermodynamics(results: report.Results, series, model: str) 
         )
 
 
-def _converted_trajectories(run_dir: Path) -> list[Path]:
-    """Convert each .xtc to g96 on demand, reusing anything already converted.
+def _gromacs_segments(run_dir: Path) -> list:
+    """One converting, self-cleaning frame source per .xtc segment.
 
-    The text form is an order of magnitude larger than the .xtc it came from, so
-    these are treated as scratch: `water-bench analyse --clean` removes them again.
+    The g96 text form is roughly thirteen times the size of the .xtc it comes
+    from, so each is made, streamed and deleted in turn: peak disk stays at one
+    segment rather than the 28 GB a whole model would otherwise need.
     """
-    converted = []
+    sources = []
     for xtc in sorted(run_dir.glob("md_*.xtc")):
         tpr = xtc.with_suffix(".tpr")
-        g96 = xtc.with_suffix(".g96")
         if not tpr.exists():
             raise FileNotFoundError(f"{tpr} is needed to convert {xtc.name}")
-        if not g96.exists():
+
+        def source(xtc=xtc, tpr=tpr):
+            g96 = xtc.with_suffix(".g96")
             gromacs.to_g96(xtc, tpr, g96)
-        converted.append(g96)
-    return converted
+            try:
+                yield from trc.read_frames(g96)
+            finally:
+                g96.unlink(missing_ok=True)
+
+        sources.append(source)
+    return sources
 
 
 def cmd_report(args) -> None:

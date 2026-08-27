@@ -74,13 +74,16 @@ def segments(model: str, run_dir: Path) -> list[Segment]:
     stages = imd.run_ladder()
     result = []
     previous = run_dir / f"water_{protocol.N_WATERS}.cnf"
+    equilibrated = run_dir / f"{protocol.EQ_STAGES[-1][0]}.cnf"
     for stage in stages:
         production = stage.name.startswith("md_")
         segment = Segment(
             name=stage.name,
             model=model,
             imd_file=run_dir / f"{stage.name}.imd",
-            conf_in=previous,
+            # Equilibration is a ladder, production is a fan: every replicate
+            # starts from the equilibrated box and they are all independent.
+            conf_in=equilibrated if production else previous,
             conf_out=run_dir / f"{stage.name}.cnf",
             trajectory=run_dir / f"{stage.name}.trc",
             energies=run_dir / f"{stage.name}.tre",
@@ -183,3 +186,75 @@ def run_model(model: str, run_dir: Path, dry_run: bool = False) -> None:
             )
             if measured:
                 seconds_per_step = measured * 1.3   # headroom for queue-time variation
+
+
+def submit_replicate(segment: Segment, topology: Path, seconds_per_step: float) -> Path:
+    """Submit one production replicate without waiting for it.
+
+    GJW_SUBMIT_ONLY leaves a job record beside the log; collect_replicate turns
+    that back into local files once the job has run.  Blocking would serialise the
+    ten replicates, which is the entire thing being avoided.
+    """
+    environment = dict(os.environ)
+    environment.update({
+        "GJW_GADI_NCORES": str(segment.cores),
+        "GJW_GADI_SPS": f"{seconds_per_step:g}",
+        "GJW_JOB_NAME": f"w_{segment.model}_{segment.name}",
+        "GJW_SUBMIT_ONLY": "1",
+    })
+    command = [
+        str(protocol.GADI_MD_SHIM),
+        "@topo", str(topology.resolve()),
+        "@conf", str(segment.conf_in.resolve()),
+        "@input", str(segment.imd_file.resolve()),
+        "@fin", str(segment.conf_out.resolve()),
+        "@trc", str(segment.trajectory.resolve()),
+        "@tre", str(segment.energies.resolve()),
+    ]
+    with open(segment.log, "w") as log_handle:
+        subprocess.run(command, env=environment, stdout=log_handle,
+                       stderr=subprocess.STDOUT, check=True)
+    return Path(f"{segment.log}.job.json")
+
+
+def collect_replicate(segment: Segment) -> bool:
+    """Pull one finished replicate back; False if it is not ready yet."""
+    record = Path(f"{segment.log}.job.json")
+    if not record.exists():
+        return False
+    if segment.conf_out.exists() and _finished(segment.log):
+        return True
+    result = subprocess.run(
+        [str(protocol.GADI_MD_SHIM), "--collect", str(record)],
+        capture_output=True, text=True,
+    )
+    if result.returncode:
+        return False
+    for output in (segment.trajectory, segment.energies):
+        _compress(output)
+    return True
+
+
+def submit_production(model: str, run_dir: Path, seconds_per_step: float | None = None) -> list:
+    """Fan every production replicate out at once.
+
+    Ten 1 ns replicates queued together finish in roughly the wall time of one,
+    where chaining them takes ten times as long. Water equilibrates in
+    picoseconds, so independent replicates from a common equilibrated box are as
+    good as one continuous run for equilibrium averages -- and better for error
+    bars, since they are genuinely independent.
+    """
+    topology = run_dir / f"{model}.top"
+    if seconds_per_step is None:
+        measured = seconds_per_step_from_log(
+            run_dir / "eq3.log", protocol.EQ_STAGES[-1][1],
+            scaling=rank_scaling(EQUILIBRATION_CORES, PRODUCTION_CORES),
+        )
+        seconds_per_step = (measured or INITIAL_SECONDS_PER_STEP) * 1.3
+
+    records = []
+    for segment in segments(model, run_dir):
+        if not segment.name.startswith("md_"):
+            continue
+        records.append(submit_replicate(segment, topology, seconds_per_step))
+    return records

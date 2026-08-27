@@ -315,14 +315,25 @@ def collect(model: str, local_dir: Path) -> list[Path]:
 
     local_dir.mkdir(parents=True, exist_ok=True)
     remote = f"{SETONIX['remote_root']}/{model}"
-    patterns = " ".join(
-        f"{remote}/{name}" for name in ("md_*.xtc", "md_*.tpr", "md_*.edr", "eq3.edr", "*.out")
-    )
-    subprocess.run(
-        ["scp", "-q", "-o", "BatchMode=yes",
-         f"{SETONIX['ssh_alias']}:\"{patterns}\"", str(local_dir)],
-        check=True,
-    )
+    host = SETONIX["ssh_alias"]
+
+    def pull(patterns: Sequence[str], required: bool) -> None:
+        # One unquoted source argument per pattern: scp hands each to the remote
+        # shell, which expands the glob.  Joining them into a single quoted string
+        # makes scp look for one absurdly long literal filename instead.
+        sources = [f"{host}:{remote}/{pattern}" for pattern in patterns]
+        result = subprocess.run(
+            ["scp", "-q", "-o", "BatchMode=yes", *sources, str(local_dir)],
+            capture_output=True, text=True,
+        )
+        if result.returncode and required:
+            raise RuntimeError(f"could not pull {patterns} from {host}: {result.stderr.strip()}")
+
+    pull(["md_*.xtc", "md_*.tpr", "md_*.edr"], required=True)
+    # Nice to have, and absent often enough not to fail the transfer over.
+    pull(["eq3.edr"], required=False)
+    pull(["*.out"], required=False)
+
     return sorted(local_dir.glob("md_*.xtc"))
 
 
@@ -338,8 +349,11 @@ def to_g96(xtc: Path, tpr: Path, output: Path, remote_host: str | None = None) -
     """
     import subprocess
 
+    # gmx_mpi is what the Setonix module provides; the local install is a serial
+    # gmx at a fixed path and is not on PATH.
+    binary = "gmx_mpi" if remote_host else str(LOCAL_GMX)
     command = (
-        f"printf '{TRJCONV_GROUP}\n' | gmx_mpi trjconv "
+        f"printf '{TRJCONV_GROUP}\n' | {binary} trjconv "
         f"-f {xtc} -s {tpr} -o {output} -pbc mol"
     )
     if remote_host:
@@ -353,6 +367,26 @@ def to_g96(xtc: Path, tpr: Path, output: Path, remote_host: str | None = None) -
         subprocess.run(command, shell=True, check=True, capture_output=True,
                        text=True, env=environment)
     return output
+
+
+def _legend_columns(xvg_text: str) -> dict:
+    """Map each energy term to its column in the .xvg, by reading the legends.
+
+    gmx energy writes the selected terms in its own internal order, not the order
+    they were asked for, so pairing request order with column order silently swaps
+    values -- Density and Potential came back as each other's numbers. The legends
+    are the only reliable statement of what is in which column.
+    """
+    columns = {}
+    for line in xvg_text.splitlines():
+        if not line.startswith("@ s"):
+            continue
+        marker, _, remainder = line.partition(" legend ")
+        if not remainder:
+            continue
+        index = int(marker.split()[1][1:])
+        columns[remainder.strip().strip('"')] = index + 1   # column 0 is time
+    return columns
 
 
 def energy_series(edr_files: Sequence[Path], properties: Sequence[str]) -> dict:
@@ -375,9 +409,16 @@ def energy_series(edr_files: Sequence[Path], properties: Sequence[str]) -> dict:
                 input=selection, capture_output=True, text=True, check=True,
                 env=environment,
             )
-            data = np.loadtxt(output, comments=("#", "@"))
-            for index, name in enumerate(properties):
-                series[name].append(np.atleast_2d(data)[:, index + 1])
+            text = output.read_text()
+            data = np.loadtxt(output.open(), comments=("#", "@"))
+            data = np.atleast_2d(data)
+            for name, column in _legend_columns(text).items():
+                if name in series:
+                    series[name].append(data[:, column])
+
+    missing = [name for name, values in series.items() if not values]
+    if missing:
+        raise KeyError(f"gmx energy returned no column for {missing}")
     return {name: np.concatenate(values) for name, values in series.items()}
 
 
