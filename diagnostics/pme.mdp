@@ -1,0 +1,62 @@
+; 2048 SPC water -- md_01
+; mirror of the GROMOS protocol: dt 0.001 ps, cutoff 1.8 nm,
+; reaction field with epsilon_rf 61
+integrator               = md
+dt                       = 0.001
+nsteps                   = 1000000
+
+; --- neighbour searching and interactions ---
+cutoff-scheme            = Verlet
+pbc                      = xyz
+; Let GROMACS size the Verlet buffer (the default tolerance) rather than pinning
+; rlist to the cutoff.  A zero buffer is not "closer to GROMOS": pairs that drift
+; inside the cutoff between list updates are simply missed, which blew up SETTLE
+; at step 38 of eq1.  The buffer only widens the neighbour LIST -- interactions
+; are still cut at rvdw/rcoulomb = 1.8 nm, so the energy is unchanged.
+verlet-buffer-tolerance  = 0.005
+nstlist                  = 5
+rlist                    = 1.8
+coulombtype              = pme
+rcoulomb                 = 1.8
+epsilon_r                = 1
+epsilon_rf               = 1
+fourierspacing           = 0.12
+pme_order                = 4
+vdwtype                  = cut-off
+rvdw                     = 1.8
+; Potential-shift (the default) would change the reported LJ energy and so the
+; heat of vaporisation; GROMOS applies no shift.
+vdw-modifier             = none
+DispCorr                 = no
+
+; --- constraints ---
+; Water is rigid by SETTLE, which is what the GROMOS SOLVENTCONSTR SHAKE does.
+constraints              = none
+constraint-algorithm     = lincs
+
+; --- coupling ---
+tcoupl                   = berendsen
+tc-grps                  = System
+tau_t                    = 0.1
+ref_t                    = 298.15
+pcoupl                   = berendsen
+pcoupltype               = isotropic
+tau_p                    = 0.5
+compressibility          = 2.755e-05
+ref_p                    = 1.01325
+gen_vel                  = no
+continuation             = yes
+
+; --- centre of mass motion ---
+comm-mode                = linear
+comm-grps                = System
+nstcomm                  = 1000
+
+; --- output ---
+nstxout                  = 0
+nstvout                  = 0
+nstfout                  = 0
+nstxout-compressed       = 100
+compressed-x-grps        = System
+nstenergy                = 100
+nstlog                   = 100

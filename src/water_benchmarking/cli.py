@@ -153,6 +153,25 @@ def _gromacs_segments(run_dir: Path) -> list:
     return sources
 
 
+def cmd_diagnostics(args) -> None:
+    """Analyse the dielectric-investigation runs and write their table."""
+    import pickle
+
+    from . import diagnostics
+
+    run_dir = args.root / "diagnostics"
+    rows = []
+    for diagnostic in diagnostics.load_manifest():
+        rows.append(diagnostics.analyse(diagnostic, run_dir))
+        print(f"{diagnostic.tag}: eps = {diagnostic.values['dielectric']:.1f}", flush=True)
+    protocol_row = None
+    if args.protocol_results and Path(args.protocol_results).exists():
+        protocol_row = next(r for r in pickle.load(open(args.protocol_results, "rb"))
+                            if r.model == "spc")
+    path = diagnostics.write(protocol_row, rows, args.output)
+    print(f"wrote {path}")
+
+
 def cmd_report(args) -> None:
     """Build the comparison table across every model and engine that has results."""
     collected = []
@@ -198,6 +217,12 @@ def main(argv: list[str] | None = None) -> None:
     analyse.add_argument("--collect", action="store_true",
                          help="pull results from Setonix first (gromacs only)")
     analyse.set_defaults(func=cmd_analyse)
+
+    diag = sub.add_parser("diagnostics", help="analyse the dielectric-investigation runs")
+    diag.add_argument("--output", type=Path, default=Path("results"))
+    diag.add_argument("--protocol-results", type=Path, default=None,
+                      help="pickled main-run Results, for the reference row")
+    diag.set_defaults(func=cmd_diagnostics)
 
     rep = sub.add_parser("report", help="build the comparison table")
     rep.add_argument("--models", nargs="+", default=sorted(protocol.MODELS))
