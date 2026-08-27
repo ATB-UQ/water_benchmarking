@@ -185,7 +185,7 @@ def run_model(model: str, run_dir: Path, dry_run: bool = False) -> None:
                 scaling=rank_scaling(EQUILIBRATION_CORES, PRODUCTION_CORES),
             )
             if measured:
-                seconds_per_step = measured * 1.3   # headroom for queue-time variation
+                seconds_per_step = measured * 1.6   # see submit_production
 
 
 def submit_replicate(segment: Segment, topology: Path, seconds_per_step: float) -> Path:
@@ -250,7 +250,11 @@ def submit_production(model: str, run_dir: Path, seconds_per_step: float | None 
             run_dir / "eq3.log", protocol.EQ_STAGES[-1][1],
             scaling=rank_scaling(EQUILIBRATION_CORES, PRODUCTION_CORES),
         )
-        seconds_per_step = (measured or INITIAL_SECONDS_PER_STEP) * 1.3
+        # 1.6x, not 1.3x: the first production batch ran 15% slower than the
+        # eq3 extrapolation and finished with 26 minutes of a 4h54 request to
+        # spare.  md++ writes no checkpoint, so a segment killed at 95% is a
+        # segment lost; walltime is cheap next to that.
+        seconds_per_step = (measured or INITIAL_SECONDS_PER_STEP) * 1.6
 
     records = []
     for segment in segments(model, run_dir):
