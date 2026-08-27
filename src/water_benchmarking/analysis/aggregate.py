@@ -186,10 +186,16 @@ def analyse_run(
 
     # The dielectric constant wants one long series, not ten short ones; the box
     # dipole was kept during the streaming pass so nothing is re-read here.
+    # A cumulative time axis, not the segments' own: each segment's clock
+    # restarts at zero (GROMACS segments carry tinit = 0, GROMOS replicates are
+    # independent runs), and a running estimate over ten of them plotted against
+    # per-segment time draws ten overlapping traces instead of one convergence.
+    all_times = np.concatenate([s.times for s in summaries])
+    dt = float(np.median(np.diff(summaries[0].times)))
     eps = dielectric.from_dipoles(
         np.vstack([s.dipoles for s in summaries]),
         np.concatenate([s.volumes for s in summaries]),
-        np.concatenate([s.times for s in summaries]),
+        np.arange(len(all_times)) * dt,
         temperature=temperature,
         running_every=500,
     )
