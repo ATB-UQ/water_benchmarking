@@ -37,6 +37,7 @@ class ThermodynamicsResult:
     hov_error: float
     hov_polarisation_corrected: float | None
     pressure: errors.Estimate          # atm
+    density_series: object = None      # per-frame series, for the convergence plot
 
 
 def run_ene_ana(energy_files: Sequence[Path], properties: Sequence[str], work_dir: Path) -> dict:
@@ -81,6 +82,7 @@ def analyse(
     corrected = hov - SPCE_POLARISATION_CORRECTION if model == "spce" else None
 
     return ThermodynamicsResult(
+        density_series=series["densit"],
         density=density,
         potential_energy=energy,
         hov=hov,

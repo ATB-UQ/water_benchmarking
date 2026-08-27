@@ -71,16 +71,19 @@ def analyse_run(model: str, engine: str, run_dir: Path) -> report.Results:
         if energies:
             thermo = density_hov.analyse(energies, model, run_dir / "analysis")
             _record_thermodynamics(results, thermo)
+            results.density_series = thermo.density_series
         trajectories = sorted(run_dir.glob("md_*.trc*"))
     else:
         energies = sorted(run_dir.glob("md_*.edr"))
         if energies:
             series = gromacs.energy_series(energies, ("Density", "Potential"))
             _record_gromacs_thermodynamics(results, series, model)
+            results.density_series = series["Density"]
         trajectories = _converted_trajectories(run_dir)
 
     if trajectories:
         summary = aggregate.analyse_run(trajectories, charges)
+        results.summary = summary
         results.values["diffusion"] = summary.diffusion.d_corrected
         results.values["diffusion_pbc"] = summary.diffusion.d_pbc
         results.uncertainties["diffusion"] = summary.diffusion.d_error

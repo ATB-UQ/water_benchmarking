@@ -29,6 +29,11 @@ class Results:
     engine: str
     values: dict = field(default_factory=dict)
     uncertainties: dict = field(default_factory=dict)
+    #: The trajectory analysis this came from, kept so the report can plot the
+    #: curves behind the numbers -- a converged epsilon and an unconverged one
+    #: look identical in a table.
+    summary: object = None
+    density_series: object = None
 
     @property
     def key(self) -> str:
@@ -101,11 +106,28 @@ def to_markdown(rows: list[list[str]]) -> str:
     return "\n".join(lines)
 
 
+def write_plots(results: list[Results], output_dir: Path) -> list[Path]:
+    """Draw every figure for which the runs carry data."""
+    from .analysis import plots
+
+    runs = {r.key: r.summary for r in results if r.summary is not None}
+    written = []
+    if runs:
+        written.append(plots.dielectric_convergence(runs, output_dir / "dielectric.png"))
+        written.append(plots.mean_squared_displacement(runs, output_dir / "msd.png"))
+        written.append(plots.rotational_correlation(runs, output_dir / "c2_HH.png"))
+    series = {r.key: r.density_series for r in results if r.density_series is not None}
+    if series:
+        written.append(plots.density_series(series, output_dir / "density.png"))
+    return written
+
+
 def write_report(results: list[Results], output_dir: Path) -> Path:
-    """Write summary.csv and summary.md; return the markdown path."""
+    """Write summary.csv, summary.md and the figures; return the markdown path."""
     output_dir.mkdir(parents=True, exist_ok=True)
     table = build_table(results)
     write_csv(table, output_dir / "summary.csv")
+    figures = write_plots(results, output_dir)
 
     text = [
         "# Water model benchmark",
@@ -128,6 +150,10 @@ def write_report(results: list[Results], output_dir: Path) -> Path:
         to_markdown(deviation_table(results)),
         "",
     ]
+    if figures:
+        text += ["## Figures", ""]
+        text += [f"![{f.stem}]({f.name})" for f in figures]
+        text += [""]
     path = output_dir / "summary.md"
     path.write_text("\n".join(text))
     return path
