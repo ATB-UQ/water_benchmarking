@@ -49,9 +49,11 @@ are below the last digit shown except where given.
 measured is the dimensionless box-dipole fluctuation y = (⟨M²⟩−⟨M⟩²)/(3ε₀VkT); the relation that
 turns it into ε depends on the electrostatic boundary. GROMOS honours the finite ε_RF = 61: its
 fluctuation is 35 % below the conducting-boundary value, exactly as Neumann's relation
-(ε−1)(2ε_RF+1)/(2ε_RF+ε) = y predicts for ε ≈ 70, and that relation gives 68 / 70. The GROMACS
-runs (GPU) show no ε_RF dependence — ε_RF = 61 and ε_RF = ∞ fluctuate alike, as does PME — so the
-conducting-boundary relation ε = 1 + y describes them, giving 66 / 69. Each read through the
+(ε−1)(2ε_RF+1)/(2ε_RF+ε) = y predicts for ε ≈ 70, and that relation gives 68 / 70. GROMACS's
+reaction field shows no ε_RF dependence — ε_RF = 61 and ε_RF = ∞ fluctuate alike, on the GPU and
+CPU kernels both, as does PME — so the conducting-boundary relation ε = 1 + y describes it, giving
+66 / 69. Why GROMACS's reaction field does not realise the finite-ε_RF boundary that GROMOS's does
+is not resolved here; the natural next test is GROMOS at ε_RF → ∞. Each read through the
 other's relation is wrong by a factor of ~2 (GROMOS 44, GROMACS 140), and the Neumann relation is
 in any case unstable near y ≈ 65 (a pole at y = 123, dε/dy ≈ 2.5–5). `results/summary.md` records y
 and both readings beside every number. Controls varying thermostat, cutoff (0.9–1.8 nm) and box
