@@ -34,6 +34,16 @@ def cmd_run(args) -> None:
     gadi.run_model(args.model, run_dir, dry_run=args.dry_run)
 
 
+def cmd_submit_gromacs(args) -> None:
+    """Stage and submit the GROMACS ladder for one model on Setonix."""
+    run_dir = _run_dir(args.model, "gromacs", args.root)
+    gromacs.write_all(run_dir, args.model)
+    box.build(run_dir)
+    job_id = gromacs.submit(args.model, run_dir, dry_run=args.dry_run)
+    if job_id:
+        print(f"{args.model}: Setonix job {job_id}")
+
+
 def cmd_analyse(args) -> None:
     """Compute every property for one model and engine."""
     run_dir = _run_dir(args.model, args.engine, args.root)
@@ -111,6 +121,12 @@ def main(argv: list[str] | None = None) -> None:
     run.add_argument("--dry-run", action="store_true",
                      help="print the shim invocations instead of submitting")
     run.set_defaults(func=cmd_run)
+
+    submit = sub.add_parser("submit-gromacs",
+                            help="stage and sbatch the GROMACS ladder on Setonix")
+    submit.add_argument("--model", required=True, choices=sorted(protocol.MODELS))
+    submit.add_argument("--dry-run", action="store_true")
+    submit.set_defaults(func=cmd_submit_gromacs)
 
     analyse = sub.add_parser("analyse", help="compute properties for one run")
     analyse.add_argument("--model", required=True, choices=sorted(protocol.MODELS))

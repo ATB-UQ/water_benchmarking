@@ -69,10 +69,17 @@ Single-point potential energy on the identical 2048-molecule SPC configuration:
 | GROMACS 2026.1 | −70884.8 |
 
 0.013 %, or 0.005 kJ mol⁻¹ per molecule — the two engines see the same Hamiltonian. The residual
-is the Verlet cluster list against GROMOS's exact cutoff. Two settings are load-bearing here:
-`vdw-modifier = none` (the default `Potential-shift` changes the reported LJ energy, and the heat
-of vaporisation is computed straight from it) and `verlet-buffer-tolerance = -1` so `rlist` is not
-silently enlarged.
+is the Verlet cluster list against GROMOS's exact cutoff.
+
+`vdw-modifier = none` is load-bearing: the default `Potential-shift` changes the reported LJ
+energy, and the heat of vaporisation is computed straight from it.
+
+**The Verlet buffer must be left on.** Pinning `rlist` to the cutoff
+(`verlet-buffer-tolerance = -1`) looks like the closer match to GROMOS's exact cutoff, but it is
+not "more faithful" -- it means pairs drifting inside the cutoff between list updates are simply
+missed, and eq1 died of an unsettleable water at step 38. With the default tolerance GROMACS picks
+`rlist = 1.802` nm, a 2 pm buffer that only widens the neighbour *list*; interactions are still cut
+at 1.8 nm and the single-point energy above is unchanged to the last digit.
 
 ## The analyses
 
