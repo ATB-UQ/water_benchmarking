@@ -100,6 +100,17 @@ def rotational_correlation(runs: Mapping[str, object], output: Path,
     axes.axhline(NOISE_FLOOR, color="grey", linestyle=":", linewidth=1,
                  label="noise floor (integration stops)")
     axes.set_ylim(NOISE_FLOOR / 5, 1.2)
+    # Show the resolved decay and a little beyond; past the last floor crossing
+    # there is nothing but empty axis.
+    last = 0.0
+    for summary in runs.values():
+        c2 = summary.c2.get(vector)
+        if c2 is not None:
+            resolved = np.nonzero(c2 > NOISE_FLOOR)[0]
+            if len(resolved):
+                last = max(last, float(summary.rotation_lags[resolved[-1]]))
+    if last:
+        axes.set_xlim(0, last * 1.3)
     axes.set_xlabel("time (ps)")
     axes.set_ylabel(rf"$C_2(t)$, {vector} vector")
     axes.set_title(f"Rotational correlation, {vector}")
