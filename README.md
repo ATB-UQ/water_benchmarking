@@ -120,3 +120,35 @@ system a quarter that size.
 
 GROMACS runs on one Setonix GCD per model (a whole GPU node is *slower* at 6k atoms), with
 `-nb gpu -bonded gpu` and no PME offload — `-pme gpu` is a fatal error under a reaction field.
+
+## The dielectric constant: an open finding (2026-08-27)
+
+Four of the five properties come out where the literature says they should.
+The fifth does not, and the discrepancy is in the *simulation*, not the analysis:
+
+| SPC, 2048 waters, 298 K | ε |
+|---|---|
+| this protocol (RF ε_RF = 61, R_c = 1.8 nm), GROMACS, 10 ns | **140** |
+| same, Berendsen → v-rescale / C-rescale, 1 ns | 141 |
+| same, reaction field → PME, 1 ns | 76 |
+| published SPC (RF or Ewald, R_c ≈ 0.9–1.4 nm) | 65 ± 5 |
+
+SPC/E gives 155 under the protocol against a published ~71 — the same ×2.2.
+
+What is ruled out: the analysis (`gmx dipoles -epsilonRF 61` agrees with the
+in-house code to 5 % on the same frames; the molecular dipole is 2.274 D
+exactly); the thermostat (v-rescale gives the same answer); the state point
+(298.1 K, 2 bar, 976 kg m⁻³); and sampling length — the box dipole decorrelates
+in 6–8 ps, so each 1 ns segment carries ~100 independent samples, the
+per-segment values scatter 137–148, and the cumulative estimate is flat from
+5 ns on. Truncation would bias ε *low* in any case.
+
+What is implicated: the reaction field at this geometry. The RF box's ⟨ΔM²⟩ is
+only 13 % below the PME box's, where a true ε ≈ 70 under Neumann's relation
+requires ~36 % below. R_c/L here is 1.8/3.98 = 0.45, hard against the L/2
+limit; the SPC/RF literature sits near 0.3. Diagnostics in flight: the same box
+at R_c = 1.4 and 0.9 nm, and the 1.8 nm cutoff in an 8× box (R_c/L = 0.23).
+If ε falls toward 70 as R_c/L falls, the number is an artefact of running a
+1.8 nm reaction field in a box only just big enough to hold it — which the
+peptide boxes (minwall 2.6 nm, L ≳ 6 nm) do not do, but any small solvated
+system under this protocol would.

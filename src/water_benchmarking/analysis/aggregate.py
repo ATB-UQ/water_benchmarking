@@ -57,7 +57,9 @@ class SegmentSummary:
 def analyse_segment(
     frames: Iterable,
     charges: Sequence[float],
-    max_lag: float = 20.0,
+    # 50 ps, not 20: tau_1 of the dipole is 3-8 ps and is taken as the integral
+    # of C_1, which at 20 ps still had a few percent of its area outstanding.
+    max_lag: float = 50.0,
     rotation_molecules: int = ROTATION_MOLECULES,
     check_whole: bool = True,
 ) -> SegmentSummary:
