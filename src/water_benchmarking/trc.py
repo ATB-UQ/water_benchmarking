@@ -54,15 +54,19 @@ def read_frames(path: Path, n_molecules: int = protocol.N_WATERS) -> Iterator[Fr
         for line in handle:
             stripped = line.strip()
             if block is None:
-                if stripped in ("TIMESTEP", "POSITIONRED", "POSITION", "GENBOX"):
+                if stripped in ("TIMESTEP", "POSITIONRED", "POSITION", "GENBOX", "BOX"):
                     block = stripped
-                    if block == "GENBOX":
+                    if block in ("GENBOX", "BOX"):
                         genbox = []
                 continue
             if stripped == "END":
-                if block == "GENBOX":
-                    # GENBOX is ntb, then the three edges, then angles and origin.
-                    edge = genbox[1]
+                if block in ("GENBOX", "BOX"):
+                    # md++ writes GENBOX -- an ntb flag, then the three edges, then
+                    # angles and origin.  gmx trjconv writes BOX, which is the three
+                    # edges and nothing else.  Both must be read: BOX is what the
+                    # GROMACS half of this benchmark produces, and treating its first
+                    # number as an ntb flag would take an edge for a flag.
+                    edge = genbox[1] if block == "GENBOX" else genbox[0]
                     positions = np.asarray(coords, dtype=float).reshape(n_molecules, 3, 3)
                     yield Frame(time=time, step=step, positions=positions, edge=edge)
                     coords = []
@@ -75,7 +79,7 @@ def read_frames(path: Path, n_molecules: int = protocol.N_WATERS) -> Iterator[Fr
                 step, time = int(fields[0]), float(fields[1])
             elif block in ("POSITIONRED", "POSITION"):
                 coords.append([float(x) for x in fields[-3:]])
-            elif block == "GENBOX":
+            elif block in ("GENBOX", "BOX"):
                 genbox.extend(float(x) for x in fields)
 
         if coords and len(coords) == n_atoms:

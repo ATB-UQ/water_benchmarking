@@ -50,3 +50,28 @@ def test_read_all_drops_repeated_boundary_frames(tmp_path):
     times = [f.time for f in frames]
     assert times == sorted(times)
     assert len(times) == len(set(times))
+
+
+def test_reads_the_box_block_gmx_trjconv_writes(tmp_path):
+    """md++ writes GENBOX, gmx trjconv writes BOX -- one reader serves both.
+
+    The two blocks differ in more than name: GENBOX leads with an ntb flag and BOX
+    does not, so reading BOX as if it were GENBOX takes an edge length for a flag.
+    Before this was handled the reader returned zero frames for every GROMACS run.
+    """
+    text = [
+        "TITLE", "converted by trjconv t=   0.00000 step= 0", "END",
+        "TIMESTEP", "              0       0.000000", "END",
+        "POSITIONRED",
+        "    0.100000000    0.100000000    0.100000000",
+        "    0.200000000    0.100000000    0.100000000",
+        "    0.150000000    0.190000000    0.100000000",
+        "END",
+        "BOX", "    3.980380058    3.980380058    3.980380058", "END",
+    ]
+    path = tmp_path / "converted.g96"
+    path.write_text("\n".join(text) + "\n")
+
+    frames = list(trc.read_frames(path, n_molecules=1))
+    assert len(frames) == 1
+    assert frames[0].edge == pytest.approx(3.980380058)

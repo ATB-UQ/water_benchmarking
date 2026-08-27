@@ -137,3 +137,26 @@ def test_block_averaging_reports_a_larger_error_for_correlated_data():
         correlated[i] = 0.98 * correlated[i - 1] + rng.normal(0, 0.2)
 
     assert errors.block_average(correlated).error > errors.block_average(independent).error
+
+
+# --- trajectory conversion -----------------------------------------------------
+
+def test_broken_molecules_are_caught_not_silently_analysed():
+    """A trajectory converted without `-pbc mol` must fail, not produce numbers.
+
+    GROMACS wraps atoms individually, splitting ~80 of 2048 molecules across the
+    boundary in every frame. Nothing downstream raises on that -- the dipole and
+    the molecular vectors just come out wrong -- so the guard is the only defence.
+    """
+    from water_benchmarking import gromacs
+    from water_benchmarking.trc import Frame
+
+    whole = np.tile(np.array([[0.10, 0.10, 0.10],
+                              [0.20, 0.10, 0.10],
+                              [0.15, 0.19, 0.10]]), (8, 1, 1))
+    gromacs.assert_whole_molecules(Frame(0.0, 0, whole, 4.0))
+
+    split = whole.copy()
+    split[3, 1, 0] += 4.0          # one hydrogen wrapped to the far face
+    with pytest.raises(AssertionError, match="pbc mol"):
+        gromacs.assert_whole_molecules(Frame(0.0, 0, split, 4.0))

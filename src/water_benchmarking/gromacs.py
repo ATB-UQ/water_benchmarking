@@ -290,3 +290,51 @@ def submit(model: str, local_dir: Path, dry_run: bool = False) -> str:
     )
     # "Submitted batch job 12345"
     return result.stdout.strip().split()[-1]
+
+
+#: Written by trjconv into the TITLE; harmless, but a reminder the file is derived.
+TRJCONV_GROUP = "System"
+
+
+def to_g96(xtc: Path, tpr: Path, output: Path, remote_host: str | None = None) -> Path:
+    """Convert a GROMACS trajectory to the g96 format trc.py reads.
+
+    `-pbc mol` is not optional.  Without it GROMACS writes atoms wrapped
+    individually, which splits roughly 80 of the 2048 molecules across the
+    periodic boundary in every frame.  Those molecules then have a 5 nm "O-H bond",
+    which silently ruins the box dipole (so the dielectric constant) and the
+    molecular vectors (so the rotational correlation times).  assert_whole_molecules
+    below is the check that this was actually done.
+    """
+    import subprocess
+
+    command = (
+        f"printf '{TRJCONV_GROUP}\n' | gmx_mpi trjconv "
+        f"-f {xtc} -s {tpr} -o {output} -pbc mol"
+    )
+    if remote_host:
+        modules = " && ".join(f"module load {m}" for m in SETONIX["modules"])
+        subprocess.run(
+            ["ssh", "-o", "BatchMode=yes", remote_host, f"{modules} && {command}"],
+            check=True, capture_output=True, text=True,
+        )
+    else:
+        subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+    return output
+
+
+def assert_whole_molecules(frame, tolerance: float = 0.02) -> None:
+    """Fail loudly if a converted frame has molecules split across the boundary.
+
+    Cheap, and the failure it catches is otherwise invisible: nothing downstream
+    errors on a broken molecule, the numbers just come out wrong.
+    """
+    import numpy as np
+
+    bond = np.linalg.norm(frame.positions[:, 1] - frame.positions[:, 0], axis=1)
+    broken = int((np.abs(bond - 0.1) > tolerance).sum())
+    if broken:
+        raise AssertionError(
+            f"{broken} molecules are split across the periodic boundary at "
+            f"t = {frame.time} ps -- the trajectory was converted without `-pbc mol`"
+        )
