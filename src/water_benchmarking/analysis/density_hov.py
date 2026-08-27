@@ -1,0 +1,90 @@
+"""Density and heat of vaporisation from the energy trajectory.
+
+For a rigid, non-polarisable model the gas-phase molecule has no internal energy
+and does not interact, so U_gas = 0 and no vacuum leg has to be simulated:
+
+    dH_vap = -<U_pot>/N + RT
+
+SPC/E is a special case.  Its charges are deliberately larger than a gas-phase
+water's to mimic the polarisation of the liquid, and the energy cost of that
+polarisation is not in the potential energy.  Berendsen's self-polarisation
+correction (+5.22 kJ/mol subtracted from dH_vap) is what makes SPC/E's published
+dH_vap comparable with experiment, so both numbers are reported.
+"""
+from __future__ import annotations
+
+import subprocess
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Sequence
+
+import numpy as np
+
+from .. import protocol
+from . import errors
+
+GAS_CONSTANT = 0.00831446         # kJ mol^-1 K^-1
+
+#: Berendsen et al. 1987, J. Phys. Chem. 91:6269 -- the SPC/E self-polarisation term.
+SPCE_POLARISATION_CORRECTION = 5.22  # kJ mol^-1
+
+
+@dataclass
+class ThermodynamicsResult:
+    density: errors.Estimate           # kg m^-3
+    potential_energy: errors.Estimate  # kJ mol^-1 per molecule
+    hov: float                         # kJ mol^-1
+    hov_error: float
+    hov_polarisation_corrected: float | None
+    pressure: errors.Estimate          # atm
+
+
+def run_ene_ana(energy_files: Sequence[Path], properties: Sequence[str], work_dir: Path) -> dict:
+    """Run gromos++ ene_ana and read back the per-frame series it writes."""
+    work_dir.mkdir(parents=True, exist_ok=True)
+    command = [
+        str(protocol.GROMOS_BIN / "ene_ana"),
+        # ene_ana runs in work_dir (it writes <prop>.dat into the cwd), so every
+        # input path has to be absolute or it would be resolved against work_dir.
+        "@en_files", *[str(Path(f).resolve()) for f in energy_files],
+        "@prop", *properties,
+        "@library", str(protocol.ENE_ANA_LIB),
+    ]
+    subprocess.run(command, cwd=work_dir, capture_output=True, text=True, check=True)
+
+    series = {}
+    for prop in properties:
+        path = work_dir / f"{prop}.dat"
+        if not path.exists():
+            raise FileNotFoundError(f"ene_ana wrote no {path.name}")
+        data = np.loadtxt(path, comments="#")
+        series[prop] = data[:, 1] if data.ndim == 2 else data
+    return series
+
+
+def analyse(
+    energy_files: Sequence[Path],
+    model: str,
+    work_dir: Path,
+    n_molecules: int = protocol.N_WATERS,
+    temperature: float = protocol.TEMPERATURE,
+) -> ThermodynamicsResult:
+    """Density, potential energy and heat of vaporisation for one model."""
+    series = run_ene_ana(energy_files, ("densit", "totpot", "pressu"), work_dir)
+
+    density = errors.block_average(errors.drop_equilibration(series["densit"]))
+    per_molecule = errors.drop_equilibration(series["totpot"]) / n_molecules
+    energy = errors.block_average(per_molecule)
+    pressure = errors.block_average(errors.drop_equilibration(series["pressu"]))
+
+    hov = -energy.mean + GAS_CONSTANT * temperature
+    corrected = hov - SPCE_POLARISATION_CORRECTION if model == "spce" else None
+
+    return ThermodynamicsResult(
+        density=density,
+        potential_energy=energy,
+        hov=hov,
+        hov_error=energy.error,
+        hov_polarisation_corrected=corrected,
+        pressure=pressure,
+    )

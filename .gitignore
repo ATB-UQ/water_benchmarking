@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.egg-info/
+runs/
+scratch_step0/
+*.trc
+*.trc.gz
+*.tre
+*.tre.gz
+*.xtc
+*.edr
+*.cpt

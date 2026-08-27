@@ -1,0 +1,133 @@
+"""Collect the per-model, per-engine results into one comparison table."""
+from __future__ import annotations
+
+import csv
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from . import experiment, protocol
+
+#: Display order and formatting for the benchmark's five properties.
+PROPERTIES = (
+    ("density", "Density", "kg m^-3", "{:.1f}"),
+    ("hov", "dH_vap", "kJ mol^-1", "{:.2f}"),
+    ("diffusion", "Self-diffusion D", "1e-9 m^2 s^-1", "{:.2f}"),
+    ("tau2_HH", "Rot. corr. time tau2(HH)", "ps", "{:.2f}"),
+    ("tau1_dipole", "Rot. corr. time tau1(mu)", "ps", "{:.2f}"),
+    ("dielectric", "Dielectric constant", "-", "{:.1f}"),
+)
+
+#: Diffusion is reported in units of 1e-9 m^2/s to keep the table readable.
+SCALE = {"diffusion": 1e9}
+
+
+@dataclass
+class Results:
+    """Everything measured for one (model, engine) pair."""
+
+    model: str
+    engine: str
+    values: dict = field(default_factory=dict)
+    uncertainties: dict = field(default_factory=dict)
+
+    @property
+    def key(self) -> str:
+        return f"{self.model.upper()}/{self.engine}"
+
+
+def _format(key: str, value: float | None, error: float | None, template: str) -> str:
+    if value is None:
+        return "-"
+    scaled = value * SCALE.get(key, 1.0)
+    text = template.format(scaled)
+    if error is not None and error == error:      # not NaN
+        text += " +/- " + template.format(error * SCALE.get(key, 1.0)).strip()
+    return text
+
+
+def build_table(results: list[Results]) -> list[list[str]]:
+    header = ["Property", "Unit"] + [r.key for r in results] + ["Experiment", "Source"]
+    rows = [header]
+    for key, label, unit, template in PROPERTIES:
+        reference = experiment.EXPERIMENT.get(key)
+        row = [label, unit]
+        for result in results:
+            row.append(
+                _format(key, result.values.get(key), result.uncertainties.get(key), template)
+            )
+        if reference:
+            row.append(template.format(reference.value * SCALE.get(key, 1.0)))
+            row.append(reference.source)
+        else:
+            row += ["-", "-"]
+        rows.append(row)
+    return rows
+
+
+def deviation_table(results: list[Results]) -> list[list[str]]:
+    """Percentage deviation from experiment, and whether the model looks reproduced."""
+    header = ["Property"] + [r.key for r in results]
+    rows = [header]
+    for key, label, _unit, _template in PROPERTIES:
+        if key not in experiment.EXPERIMENT:
+            continue
+        row = [label]
+        for result in results:
+            value = result.values.get(key)
+            if value is None:
+                row.append("-")
+                continue
+            percent = experiment.deviation(value, key)
+            known = experiment.within_literature(value, result.model, key)
+            flag = "" if known is None else ("" if known else "  [!]")
+            row.append(f"{percent:+.1f}%{flag}")
+        rows.append(row)
+    return rows
+
+
+def write_csv(rows: list[list[str]], path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", newline="") as handle:
+        csv.writer(handle).writerows(rows)
+
+
+def to_markdown(rows: list[list[str]]) -> str:
+    widths = [max(len(str(row[i])) for row in rows) for i in range(len(rows[0]))]
+    lines = []
+    for index, row in enumerate(rows):
+        lines.append("| " + " | ".join(str(c).ljust(widths[i]) for i, c in enumerate(row)) + " |")
+        if index == 0:
+            lines.append("|" + "|".join("-" * (w + 2) for w in widths) + "|")
+    return "\n".join(lines)
+
+
+def write_report(results: list[Results], output_dir: Path) -> Path:
+    """Write summary.csv and summary.md; return the markdown path."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    table = build_table(results)
+    write_csv(table, output_dir / "summary.csv")
+
+    text = [
+        "# Water model benchmark",
+        "",
+        f"{protocol.N_WATERS} water molecules, {protocol.TEMPERATURE} K, 1 atm, "
+        f"{protocol.PRODUCTION_SEGMENTS} x "
+        f"{protocol.PRODUCTION_STEPS * protocol.TIMESTEP / 1000:.0f} ns production.",
+        f"Single-range cutoff {protocol.CUTOFF} nm, reaction field "
+        f"eps_rf = {protocol.EPSILON_RF:.0f}, timestep {protocol.TIMESTEP * 1000:.0f} fs.",
+        "",
+        "## Results",
+        "",
+        to_markdown(table),
+        "",
+        "## Deviation from experiment",
+        "",
+        "`[!]` marks a value outside the published range for that model, which points",
+        "at the setup rather than at the model.",
+        "",
+        to_markdown(deviation_table(results)),
+        "",
+    ]
+    path = output_dir / "summary.md"
+    path.write_text("\n".join(text))
+    return path

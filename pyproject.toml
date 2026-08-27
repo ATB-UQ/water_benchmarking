@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "water_benchmarking"
+version = "0.1.0"
+description = "Benchmark classical water models (SPC, SPC/E) against experiment with GROMOS and GROMACS"
+requires-python = ">=3.9"
+dependencies = ["numpy"]
+
+[project.scripts]
+water-bench = "water_benchmarking.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
