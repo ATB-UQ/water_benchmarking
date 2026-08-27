@@ -37,6 +37,7 @@ COMPLETION_MARKER = "MD++ finished successfully"
 @dataclass
 class Segment:
     name: str
+    model: str
     imd_file: Path
     conf_in: Path
     conf_out: Path
@@ -64,6 +65,7 @@ def segments(model: str, run_dir: Path) -> list[Segment]:
         production = stage.name.startswith("md_")
         segment = Segment(
             name=stage.name,
+            model=model,
             imd_file=run_dir / f"{stage.name}.imd",
             conf_in=previous,
             conf_out=run_dir / f"{stage.name}.cnf",
@@ -107,9 +109,10 @@ def run_segment(
         {
             "GJW_GADI_NCORES": str(segment.cores),
             "GJW_GADI_SPS": f"{seconds_per_step:g}",
-            # PBS truncates -N at 15 characters and gadi_md.sh keeps the tail,
-            # so the distinguishing part of the name must come last.
-            "GJW_JOB_NAME": f"w_{segment.name}",
+            # PBS truncates -N at 15 characters and gadi_md.sh keeps the tail, so
+            # the model must be in the name or both models' jobs are indistinguishable
+            # in the queue -- "w_spce_md_10" is 12 characters and survives intact.
+            "GJW_JOB_NAME": f"w_{segment.model}_{segment.name}",
         }
     )
 

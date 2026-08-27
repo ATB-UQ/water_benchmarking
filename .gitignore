@@ -10,3 +10,4 @@ scratch_step0/
 *.xtc
 *.edr
 *.cpt
+.staging/
