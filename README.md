@@ -1,161 +1,81 @@
 # water_benchmarking
 
-Benchmarks the two classical water models ATB relies on — **SPC** and **SPC/E** — against
-experiment, under the exact simulation protocol the peptide/protein validation campaign uses.
-Every property is computed with both **GROMOS** (md++ 1.6.0, MPI, on Gadi) and **GROMACS**
-(GPU, on Setonix), so a disagreement can be attributed to the engine rather than to the setup.
+Benchmarks **SPC** and **SPC/E** water against experiment under the simulation protocol the
+ATB peptide/protein validation uses, with both **GROMOS** (md++ 1.6.0, Gadi) and **GROMACS**
+(2026.1, Setonix GPU) so that a disagreement can be attributed to the engine. Five properties
+at 298.15 K and 1 atm: density, heat of vaporisation, self-diffusion, rotational correlation
+time, static dielectric constant.
 
-Five properties, all at 298.15 K and 1 atm: density, heat of vaporisation, self-diffusion,
-rotational correlation times, and the static dielectric constant.
+## Protocol
 
-## Why it exists
-
-The peptide runs put ATB force fields in SPC water at a 1.8 nm single-range cutoff with a
-reaction field. Nothing had ever measured what that water model does *on its own* under that
-protocol — the pure-liquid machinery in `gromos_job_wrapper` covers density and heat of
-vaporisation for ATB solutes only, and nothing in the platform computed diffusion, rotational
-relaxation or a dielectric constant at all.
-
-## The protocol
-
-Defined once, in [`protocol.py`](src/water_benchmarking/protocol.py), and rendered into both a
-GROMOS `.imd` and a GROMACS `.mdp` so the two engines cannot drift apart.
+Defined once in [`protocol.py`](src/water_benchmarking/protocol.py) and rendered into both the
+GROMOS `.imd` and the GROMACS `.mdp`.
 
 | | |
 |---|---|
-| System | 2048 water molecules, cubic, edge ≈ 3.98 nm |
-| Temperature / pressure | 298.15 K, 1 atm (Berendsen, τ_T 0.1 ps, τ_P 0.5 ps) |
-| Timestep | 1 fs |
-| Cutoff | single-range 1.8 nm (RCUTP = RCUTL = RCRF = ASHAPE) |
-| Electrostatics | reaction field, ε_RF = 61 |
-| Constraints | rigid water (SHAKE in GROMOS, SETTLE in GROMACS) |
-| Ladder | emin → 10 ps NVT at 50 K → 20 ps NVT at 298 K → 100 ps NPT → 10 × 1 ns NPT |
-| Sampling | 0.1 ps (τ₂ of water is ≈ 2 ps, so the 50 ps of the peptide runs is far too coarse) |
+| System | 2048 waters, cubic, a ≈ 3.98 nm (1024 would put the half-box below the cutoff) |
+| Thermostat / barostat | Berendsen, 298.15 K / 1 atm, τ_T 0.1 ps, τ_P 0.5 ps |
+| Timestep | 1 fs; rigid water (SHAKE / SETTLE) |
+| Cutoff | single-range 1.8 nm |
+| Electrostatics | reaction field, ε_RF = 61 (the peptide-protocol value, for both models) |
+| Ladder | emin → 10 ps NVT 50 K → 20 ps NVT → 100 ps NPT → 10 × 1 ns NPT |
+| Sampling | 0.1 ps |
 
-**2048 is not a free choice.** 1024 waters at bulk density give a ≈ 3.1 nm, and a half-box of
-1.55 nm is *below* the 1.8 nm cutoff, which breaks the minimum image convention. 2048 is the
-smallest power of two that clears it (half-box 1.99 nm).
+Production is ten 1 ns runs per model. GROMACS chains them; GROMOS runs them as concurrent
+replicates from the same equilibrated box with distinct velocity seeds, which finishes in the
+wall time of one.
 
-**ε_RF is 61 for both models**, because that is what the peptide protocol uses. SPC/E is more
-often published with ε_RF ≈ 71; the point here is to benchmark the protocol ATB actually runs.
+## Results
 
-## What Step 0 established
+GROMACS, 10 ns per model. GROMOS: pending. Full tables and figures in [`results/`](results/).
 
-Four things had to be checked before any of this could work, and each one changed the design:
+| Property | SPC | SPC/E | Experiment |
+|---|---|---|---|
+| Density (kg m⁻³) | 976.0 | 997.4 | 997.05 |
+| ΔH_vap (kJ mol⁻¹) | 44.19 | 49.27 (44.05 with the SPC/E polarisation correction) | 43.99 |
+| D (10⁻⁹ m² s⁻¹, Yeh–Hummer corrected) | 4.31 | 2.75 | 2.30 |
+| τ₂(HH) (ps) | 1.17 | 1.99 | 2.0 |
+| ε | 66.3 ± 1.7 | 69.4 ± 1.5 | 78.4 |
 
-1. **`make_top` needs no `@seq` at all.** An empty sequence is rejected outright ("Cannot find
-   building block for"), but omitting it gives exactly the wanted topology — `SOLUTEATOM` with
-   NRP 0 plus the requested solvent block.
-2. **md++ accepts `NPM 0`, but not with solute SHAKE.** `NTC 2` fails with *"solvent only
-   simulation does not work with SHAKE for solute"*. The protocol uses `NTC 1`; nothing is lost,
-   because the rigid water geometry comes from `SOLVENTCONSTR` via `NTCS` either way.
-3. **The `ene_ana` library must be the one shipped with this md++ build**
-   (`/opt/gromos/1.6.0/share/md++/ene_ana.md++.lib`). The copy in `gromos_job_wrapper` carries the
-   same `ENEVERSION` stamp (2023-04-15) and still fails to parse this build's `.tre`
-   ("Tried to read an integer for NUM_EDS_STATES"). The version stamp does not identify the layout.
-4. **gromos++ `epsilon`, `diffus` and `check_box` cannot be used here at all.** All three gather
-   the trajectory first, and every gather method requires at least one solute molecule:
-   *"the cog gather method requires at least one solute molecule"*. In a solvent-only system they
-   refuse to run. This is why the transport and dielectric analyses are implemented in this package
-   rather than shelled out — and why **GROMACS is the cross-check**, not gromos++.
+Both models behave as published: SPC/E reproduces density and (corrected) ΔH_vap to within
+0.1 %, diffuses 20 % too fast and reorients at the experimental rate; SPC is 2 % light, diffuses
+nearly twice too fast and reorients in half the time. Both underestimate ε by 12–15 %.
+Statistical errors are below the last digit shown except where given.
 
-## Cross-engine validation
+**The dielectric constant is reported through ε = 1 + y**, where y = (⟨M²⟩−⟨M⟩²)/(3ε₀VkT).
+The textbook finite-ε_RF relation (Neumann) gives ~140 for the same trajectories: at ε_RF = 61 it
+has a pole at y = 123, fifty units from where water sits, and it presumes an ε_RF dependence of
+the fluctuation that the force field cannot carry (k_rf at ε_RF = 61 is within 2.4 % of the
+conducting-boundary value). Controls varying thermostat, cutoff (0.9–1.8 nm), box (2048–16384
+waters) and boundary condition (ε_RF = 61, ∞, PME) all give y = 59–76; see
+[`results/diagnostics.md`](results/diagnostics.md). Anyone computing ε from an ATB reaction-field
+trajectory with the finite-ε_RF formula will get roughly double the true value.
 
-Single-point potential energy on the identical 2048-molecule SPC configuration:
+## What a pure-solvent system needs
 
-| engine | U_pot (kJ mol⁻¹) |
-|---|---|
-| GROMOS md++ 1.6.0 | −70875.4 |
-| GROMACS 2026.1 | −70884.8 |
-
-0.013 %, or 0.005 kJ mol⁻¹ per molecule — the two engines see the same Hamiltonian. The residual
-is the Verlet cluster list against GROMOS's exact cutoff.
-
-`vdw-modifier = none` is load-bearing: the default `Potential-shift` changes the reported LJ
-energy, and the heat of vaporisation is computed straight from it.
-
-**The Verlet buffer must be left on.** Pinning `rlist` to the cutoff
-(`verlet-buffer-tolerance = -1`) looks like the closer match to GROMOS's exact cutoff, but it is
-not "more faithful" -- it means pairs drifting inside the cutoff between list updates are simply
-missed, and eq1 died of an unsettleable water at step 38. With the default tolerance GROMACS picks
-`rlist = 1.802` nm, a 2 pm buffer that only widens the neighbour *list*; interactions are still cut
-at 1.8 nm and the single-point energy above is unchanged to the last digit.
-
-## The analyses
-
-All four are in [`analysis/`](src/water_benchmarking/analysis/) and each is validated in
-`tests/test_analysis.py` against a case with a known answer.
-
-- **Density / ΔH_vap** — `ene_ana`. For a rigid non-polarisable model U_gas = 0, so
-  ΔH_vap = −⟨U_pot⟩/N + RT and no vacuum leg is needed. SPC/E additionally reports the value with
-  Berendsen's self-polarisation correction (−5.22 kJ mol⁻¹), which is how SPC/E is normally quoted.
-- **Diffusion** — MSD by the Fast Correlation Algorithm (FFT; the direct form is O(n²) and hopeless
-  at 10⁵ frames), Einstein fit over 10–100 ps. Reported both as simulated and with the Yeh–Hummer
-  finite-size correction, which is ≈ +7 % for this box and must never be hidden.
-- **Rotational relaxation** — C₁ and C₂ for the O–H, H–H and dipole vectors. C₂ is obtained from
-  the autocorrelation of the second-rank tensor u⊗u, since ⟨(u(0)·u(t))²⟩ is not an
-  autocorrelation of u itself.
-- **Dielectric** — ⟨M²⟩−⟨M⟩² with the Neumann reaction-field relation, *not* the vacuum Kirkwood
-  formula (which would understate ε by ~15 % at ε_RF = 61). A running estimate is reported because
-  ε converges slowly: one box gives one sample per frame regardless of how many molecules it holds.
+- `make_top` with no `@seq` (an empty one is rejected); `NPM 0` with `NTC 1` — md++ refuses solute
+  SHAKE with no solute, and the rigid geometry comes from `SOLVENTCONSTR` regardless.
+- The `ene_ana` library shipped with the md++ build; the `gromos_job_wrapper` copy shares its
+  `ENEVERSION` stamp and cannot parse the `.tre`.
+- gromos++ `epsilon`, `diffus` and `check_box` gather first, and every gather method needs a
+  solute; none run on a solvent-only system. The transport and dielectric analyses are in this
+  package, and GROMACS is the cross-check (single-point energy agrees with GROMOS to 0.013 %).
+- GROMACS: `vdw-modifier = none` (the default shift changes the potential energy and so ΔH_vap);
+  keep the Verlet buffer (no buffer loses pairs and SETTLE fails); `-nb gpu` only — `-pme gpu` is
+  fatal under a reaction field and `-bonded gpu` fatal with no bonded terms; convert with
+  `trjconv -pbc mol` or ~80 molecules per frame straddle the boundary.
+- Analyses are streamed one segment at a time and validated against cases with known answers
+  (`tests/`).
 
 ## Usage
 
 ```bash
-water-bench build                          # topology, box and inputs for both engines
-water-bench run --model spc                # GROMOS ladder on Gadi (blocking, one chain)
-water-bench run --model spce               # run the second model concurrently
-water-bench analyse --model spc            # properties for one finished run
-water-bench report                         # the comparison table across models and engines
+water-bench build                  # topology, box and inputs for both engines
+water-bench run --model spc        # GROMOS ladder on Gadi (equilibration, then replicate fan)
+water-bench submit-gromacs --model spc
+water-bench analyse --model spc --engine gromacs
+water-bench diagnostics            # the protocol-variation runs
+water-bench report                 # results/summary.{md,csv} and figures
 ```
 
-Runs land under `/ssd1_nas_md/water_benchmarking/<model>/<engine>/`; trajectories stay there and
-only the summary tables and plots are committed.
-
-GROMOS goes to Gadi through `gromos_job_wrapper/deployment/gadi_md.sh`, which stages inputs,
-sizes the PBS walltime from `NSTLIM`, and pulls results back with size verification. Walltime is
-sized from `INITIAL_SECONDS_PER_STEP = 0.02` and then refined from the measured eq3 rate — the
-shim's own default of 0.08 s/step is the 23k-atom peptide figure and would request ~22 h for a
-system a quarter that size.
-
-GROMACS runs on one Setonix GCD per model (a whole GPU node is *slower* at 6k atoms), with
-`-nb gpu -bonded gpu` and no PME offload — `-pme gpu` is a fatal error under a reaction field.
-
-## The dielectric constant under a reaction field (resolved 2026-08-27)
-
-Four of the five properties came out where the literature says they should. The fifth
-first read **ε = 140** for SPC and **155** for SPC/E against published 65 and 71, and a day of
-diagnostics traced it not to the simulations but to the *relation* used to read them.
-
-The measured quantity is the dimensionless fluctuation y = (⟨M²⟩−⟨M⟩²)/(3ε₀VkT). Every
-reaction-field geometry tried gives the same y, and the 8× box under the reaction field gives the
-PME value exactly:
-
-| SPC, 298 K, 1 ns each unless noted | y | ε = 1 + y | ε by Neumann(ε_RF = 61) |
-|---|---|---|---|
-| protocol: RF ε_RF = 61, R_c = 1.8 nm, Berendsen (10 ns) | 67.3 | **68** | 150 |
-| same, v-rescale / C-rescale | 65.9 | 67 | 143 |
-| same, R_c = 1.4 nm | 59.3 | 60 | 116 |
-| same, R_c = 0.9 nm | 68.1 | 69 | 153 |
-| same, 16384 waters (R_c/L = 0.23) | 75.6 | 77 | 197 |
-| RF with ε_RF = ∞ | 61.9 | 63 | – |
-| PME | 75.6 | 77 | – |
-| published SPC | | 65 ± 5 | |
-
-Neumann's relation for a finite ε_RF, (ε−1)(2ε_RF+1)/(2ε_RF+ε) = y, has a pole at
-y = 2ε_RF + 1 = 123. Water sits fifty units from it, where dε/dy ≈ 3: the ten-percent scatter
-between the runs above becomes a spread of 116–197. The relation presumes the fluctuation carries
-a strong ε_RF dependence — a box under ε_RF = 61 should fluctuate ~35 % less than one under
-ε_RF = ∞ — but the force field barely does: k_rf at ε_RF = 61 is within 2.4 % of the
-conducting-boundary value, and the ε_RF = ∞ control fluctuates the same as the ε_RF = 61 run
-to within its scatter. The box cannot know which boundary it is under to the precision the
-formula demands.
-
-**ε is therefore reported through ε = 1 + y**, which puts SPC at 68 and SPC/E at 73, with y
-itself, the Neumann value and its sensitivity carried alongside in the table so the choice of
-relation is never silent. Ruled out along the way, each by a control run: the analysis
-(`gmx dipoles` agrees with the in-house code), the thermostat (v-rescale gives the same y), the
-state point (298.1 K, 2 bar, 976 kg m⁻³), the cutoff-to-box ratio (0.23–0.45 makes no
-difference), and sampling length (the box dipole decorrelates in 6–8 ps, so a 1 ns segment
-holds ~100 independent samples and the cumulative estimate is flat from 5 ns; truncation would
-in any case bias ε *low*).
+Runs live under `/ssd1_nas_md/water_benchmarking/<model>/<engine>/`.
