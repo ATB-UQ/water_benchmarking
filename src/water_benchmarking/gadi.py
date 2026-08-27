@@ -33,6 +33,19 @@ INITIAL_SECONDS_PER_STEP = 0.02
 
 COMPLETION_MARKER = "MD++ finished successfully"
 
+#: Measured gadi wall time per ns against rank count, from
+#: gromos_job_wrapper/deployment/BENCHMARKS.md.  Scaling is nowhere near linear --
+#: 24 ranks is 1.67x faster than 8, not 3x (58% efficiency against 32%) -- so
+#: converting an 8-rank measurement into a 24-rank walltime by the ratio of core
+#: counts under-requests by about a third, and a segment killed just short of its
+#: restart is the exact failure the peptide runs hit when GJW_GADI_SPS was 0.05.
+GADI_HOURS_PER_NS = {1: 17.3, 4: 5.26, 8: 3.71, 16: 2.76, 24: 2.22}
+
+
+def rank_scaling(from_cores: int, to_cores: int) -> float:
+    """How much the per-step cost changes moving between two rank counts."""
+    return GADI_HOURS_PER_NS[to_cores] / GADI_HOURS_PER_NS[from_cores]
+
 
 @dataclass
 class Segment:
@@ -79,7 +92,7 @@ def segments(model: str, run_dir: Path) -> list[Segment]:
     return result
 
 
-def seconds_per_step_from_log(log: Path, steps: int, cores_ratio: float = 1.0) -> float | None:
+def seconds_per_step_from_log(log: Path, steps: int, scaling: float = 1.0) -> float | None:
     """Read md++'s own timing out of a finished log, to size later walltimes.
 
     Returns None if the log has no timing line, in which case the caller should
@@ -90,7 +103,7 @@ def seconds_per_step_from_log(log: Path, steps: int, cores_ratio: float = 1.0) -
     for line in log.read_text().splitlines():
         if "Wall time simulation" in line:
             seconds = float(line.split(":")[-1])
-            return seconds / steps * cores_ratio
+            return seconds / steps * scaling
     return None
 
 
@@ -166,7 +179,7 @@ def run_model(model: str, run_dir: Path, dry_run: bool = False) -> None:
             # sizes every production walltime, at the production rank count.
             measured = seconds_per_step_from_log(
                 segment.log, protocol.EQ_STAGES[-1][1],
-                cores_ratio=EQUILIBRATION_CORES / PRODUCTION_CORES,
+                scaling=rank_scaling(EQUILIBRATION_CORES, PRODUCTION_CORES),
             )
             if measured:
                 seconds_per_step = measured * 1.3   # headroom for queue-time variation
