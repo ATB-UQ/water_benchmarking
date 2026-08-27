@@ -1,9 +1,7 @@
-Property,Unit,SPC/gromacs,SPCE/gromacs,Experiment,Source
-Density,kg m^-3,976.0 +/- 0.078,997.4 +/- 0.069,997.0,"Kell 1975, J. Chem. Eng. Data 20:97"
-dH_vap,kJ mol^-1,44.19 +/- 0.001,49.27 +/- 0.0014,43.99,"Wagner & Pruss 2002, IAPWS-95"
-Self-diffusion D,1e-9 m^2 s^-1,4.31 +/- 0.014,2.75 +/- 0.004,2.30,"Holz et al. 2000, PCCP 2:4740"
-Rot. corr. time tau2(HH),ps,1.17,1.98,2.00,"NMR relaxation; Ludwig 2001, Angew. Chem. 40:1808"
-Rot. corr. time tau1(mu),ps,2.83,4.63,8.30,"Debye tau_D (collective); Ronne et al. 1997, JCP 107:5319"
-Dielectric constant (eps = 1 + y),-,66.3 +/- 1.7,69.4 +/- 1.5,78.4,"Fernandez et al. 1997, J. Phys. Chem. Ref. Data 26:1125"
-  dipole fluctuation y,-,65.3,68.4,-,-
-  eps by Neumann(eps_rf = 61) [unstable],-,140,155,-,-
+Property,Unit,SPC/GROMOS,SPC/GROMACS,SPCE/GROMOS,SPCE/GROMACS,Experiment,Source
+Density,kg m^-3,974.8 +/- 0.071,976.0 +/- 0.078,996.4 +/- 0.086,997.4 +/- 0.069,997.0,"Kell 1975, J. Chem. Eng. Data 20:97"
+dH_vap,kJ mol^-1,44.16 +/- 0.0013,44.19 +/- 0.001,49.24 +/- 0.0016,49.27 +/- 0.0014,43.99,"Wagner & Pruss 2002, IAPWS-95"
+Self-diffusion D,1e-9 m^2 s^-1,4.45 +/- 0.0032,4.31 +/- 0.014,2.78 +/- 0.021,2.75 +/- 0.004,2.30,"Holz et al. 2000, PCCP 2:4740"
+Rot. corr. time tau2(HH),ps,1.16,1.17,1.96,1.98,2.00,"NMR relaxation; Ludwig 2001, Angew. Chem. 40:1808"
+Rot. corr. time tau1(mu),ps,2.81,2.83,4.60,4.63,8.30,"Debye tau_D (collective); Ronne et al. 1997, JCP 107:5319"
+Dielectric constant,-,68.1 +/- 1.9,66.3 +/- 1.7,69.8 +/- 2.2,69.4 +/- 1.5,78.4,"Fernandez et al. 1997, J. Phys. Chem. Ref. Data 26:1125"

@@ -170,6 +170,18 @@ def write_report(results: list[Results], output_dir: Path) -> Path:
         "",
         *_notes(results),
     ]
+    relations = {res.key: res.values.get("dielectric_relation") for res in results
+                 if res.values.get("dielectric_relation")}
+    if relations:
+        text += ["## Dielectric constant: relation used per run", "",
+                 "y = (<M^2> - <M>^2) / (3 eps0 V kT) is what is measured; the relation that",
+                 "turns it into eps depends on the boundary the engine realises (see README).", ""]
+        text += [f"- {key}: {relation}  (y = {res.values['dielectric_y']:.1f}; "
+                 f"conducting {res.values['dielectric_conducting']:.1f}, "
+                 f"Neumann {res.values['dielectric_neumann']:.0f})"
+                 for key, relation in relations.items()
+                 for res in results if res.key == key]
+        text += [""]
     if figures:
         text += ["## Figures", ""]
         text += [f"![{f.stem}]({f.name})" for f in figures]

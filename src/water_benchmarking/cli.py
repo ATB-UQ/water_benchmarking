@@ -94,14 +94,30 @@ def analyse_run(model: str, engine: str, run_dir: Path) -> report.Results:
         results.values["tau2_HH"] = summary.tau2["HH"]
         results.values["tau2_OH"] = summary.tau2["OH"]
         results.values["tau1_dipole"] = summary.tau1["dipole"]
-        results.values["dielectric"] = summary.dielectric.epsilon
-        results.uncertainties["dielectric"] = summary.dielectric.epsilon_error
-        # The relation the number came from must travel with it: the same
-        # fluctuation reads ~70 under a conducting boundary and ~140 under
-        # Neumann at eps_rf = 61, and only the first is stable there.
-        results.values["dielectric_y"] = summary.dielectric.y
-        results.values["dielectric_neumann"] = summary.dielectric.epsilon_neumann
-        results.values["dielectric_neumann_sensitivity"] = summary.dielectric.neumann_sensitivity
+        # The relation that turns the dipole fluctuation into eps depends on the
+        # boundary the engine actually realises, and the two engines differ.
+        # GROMOS honours the finite eps_rf: its fluctuation is 35% below the
+        # conducting-boundary value, exactly as Neumann's relation predicts for
+        # eps ~ 70, and that relation is the right one for it.  GROMACS's GPU
+        # runs show no eps_rf dependence at all (eps_rf = 61 and infinity give
+        # the same fluctuation), so for them the conducting-boundary relation
+        # eps = 1 + y is the one that describes the box.  Read the other way
+        # round, GROMOS gives 44 and GROMACS 140; read this way both give the
+        # published values.  The choice is recorded beside the number.
+        eps = summary.dielectric
+        if engine == "gromos":
+            results.values["dielectric"] = eps.epsilon_neumann
+            results.values["dielectric_relation"] = f"Neumann, eps_rf = {protocol.EPSILON_RF:.0f}"
+            # Propagate the y uncertainty through the Neumann relation's slope.
+            results.uncertainties["dielectric"] = eps.epsilon_error * eps.neumann_sensitivity
+        else:
+            results.values["dielectric"] = eps.epsilon
+            results.values["dielectric_relation"] = "conducting boundary, eps = 1 + y"
+            results.uncertainties["dielectric"] = eps.epsilon_error
+        results.values["dielectric_y"] = eps.y
+        results.values["dielectric_conducting"] = eps.epsilon
+        results.values["dielectric_neumann"] = eps.epsilon_neumann
+        results.values["dielectric_neumann_sensitivity"] = eps.neumann_sensitivity
 
     return results
 

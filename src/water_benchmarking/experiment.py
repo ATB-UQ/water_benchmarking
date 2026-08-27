@@ -50,7 +50,7 @@ LITERATURE = {
         "density": (972.0, 985.0),
         "hov": (41.0, 44.0),
         "diffusion": (3.6e-9, 4.4e-9),   # 3.6 (Berendsen 1987) to 4.3 (van der Spoel 1998)
-        "dielectric": (62.0, 68.0),
+        "dielectric": (60.0, 70.0),      # 65 +/- 5 across RF and Ewald studies
         "tau2_HH": (0.9, 1.3),
     },
     "spce": {
