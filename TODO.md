@@ -35,15 +35,17 @@
 > Statistically equivalent, not worth re-running, but it means the SPC/E
 > equilibration cannot be reproduced bit-for-bit from the current code.
 >
-> - [ ] `water-bench --root /ssd1_nas_md/water_benchmarking build --models opc3`
-> - [ ] `water-bench submit-gromacs --model opc3` (Setonix GPU, `w_opc3`)
-> - [ ] `water-bench analyse --model opc3 --engine gromacs --collect`
-> - [ ] `water-bench report` — confirm the `OPC3/gromacs` column, and that nothing carries `[!]`
+> - [x] built, submitted (Setonix 47753597, 26m50s), collected, analysed — every property with a
+>       published value inside its literature range; results in the README table
+> - [x] protocol sweep at 1.4 nm / 2 fs / RF 78.4, RF 61, PME (Setonix 47758274) —
+>       `results/opc3_settings.md`; recommendation: 1.4 nm, 2 fs, RF, 10 ns, 0.2 ps sampling
+> - [ ] `water-bench report` — regenerate `results/summary.md` with the `OPC3/gromacs` column
+>       (needs the 1.8 nm analysis re-run through `report`, ~1 h of streaming)
 > - [x] `LITERATURE["opc3"]` filled in from Table III of the paper (ρ 0.996 ± 0.001, ε 78.4 ± 1,
 >       D 2.30 ± 0.02, ΔH_vap 10.73 ± 0.004 kcal/mol = 44.89 kJ/mol). The paper reports no
 >       rotational correlation time, so `tau2_HH` stays absent and prints `[?]` — unchecked, which
 >       is the honest reading, rather than silently looking confirmed.
-> - [ ] the README results table still says "not yet run" for the OPC3 column
+> - [x] README results table filled in for OPC3
 
 Ordered checklist. Full rationale in `~/.claude/plans/benchmark-two-classical-md-whimsical-dahl.md`.
 Fixed decisions: **N = 2048** (a ≈ 3.95 nm; 1024 violates minimum image at 1.8 nm), **10 × 1 ns

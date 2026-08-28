@@ -157,6 +157,26 @@ and both readings beside every number. Controls varying thermostat, cutoff (0.9�
 1 % — except a 0.9 nm cutoff, which lowers the density 1 %, D 7 % and slows reorientation 8 %;
 see [`results/diagnostics.md`](results/diagnostics.md).
 
+## OPC3 protocol sweep: 1.4 nm, 2 fs, ε_RF and PME
+
+Branched from the end of the OPC3 main run through one 100 ps re-equilibration, 10 ns per
+condition. Full table and reasoning in [`results/opc3_settings.md`](results/opc3_settings.md).
+
+| condition | ρ | ΔH_vap − E_pol | D | τ₂(HH) | ε | ns/day |
+|---|---|---|---|---|---|---|
+| 1.8 nm, 1 fs, RF 61 (main) | 994.4 | 44.63 | 2.37 | 2.28 | 78.3 ± 1.7 | 558 |
+| 1.4 nm, 2 fs, RF ε_RF = 78.4 | 993.1 | 44.62 | 2.35 | 2.33 | 82.5 ± 2.5 | 1139 |
+| 1.4 nm, 2 fs, RF ε_RF = 61 | 993.0 | 44.62 | 2.29 | 2.33 | 80.3 ± 2.6 | 1142 |
+| 1.4 nm, 2 fs, PME | 992.6 | 44.57 | 2.40 | 2.32 | 77.6 ± 2.2 | 884 |
+
+ε_RF (78.4, OPC3's own, versus the SPC value 61) makes no measurable difference, and neither
+does RF versus PME — the same GROMACS reaction-field behaviour seen for SPC, on a third model
+at a second cutoff. The only systematic effect of the shorter cutoff is a 0.15 % density
+drop. Throughput doubles (2.05× RF, 1.58× PME), almost all of it from the 2 fs step; the
+cutoff itself buys ~12 % on a 6k-atom system on one GCD. ρ and ΔH_vap converge in 1 ns, D
+and τ₂ in 2; only ε needs the full 10 ns (a single nanosecond scatters over 65–86). Sampling
+at 0.2 ps halves the storage and still resolves τ₂.
+
 ## What a pure-solvent system needs
 
 - `make_top` with no `@seq` (an empty one is rejected); `NPM 0` with `NTC 1` — md++ refuses solute
