@@ -14,6 +14,37 @@
 > GROMACS's reaction field does not realise the finite-ε_RF boundary GROMOS's does (next test:
 > GROMOS at ε_RF → ∞). Still to do in the superproject: commit the `siblings.txt`/`.gitignore` rows.
 
+> **Update, 2026-08-28 (OPC3).** A third model is registered: **OPC3** (Izadi & Onufriev 2016,
+> *J. Chem. Phys.* 145:074501), **GROMACS only** — 54A7 has no building block for it, and the
+> two-engine agreement is already established. Everything up to submission is built and verified
+> locally: the model registry, the packaged `data/opc3.itp` (amber19sb's parameters restated in
+> gromos54a7's C6/C12 convention), per-engine build gating, and 20 new tests including a real
+> `grompp` + `gmx dump` round trip that reads charges, C6/C12 and the SETTLE geometry back out of
+> the .tpr. SPC and SPC/E inputs regenerate byte-identically. Remaining:
+>
+> **Bug found while adding OPC3, fixed:** `gromacs.stages()` inherited
+> `generate_velocities=True` on all ten production segments from the shared
+> `imd.run_ladder()`, which is written for the GROMOS shape (ten independent
+> replicates). GROMACS *chains* its segments, so this regenerated velocities at the
+> head of every one, at the same seed each time — neither a chain nor a set of
+> replicates. The `.mdp` files actually run on Setonix chain correctly, so the
+> generator had drifted from them; with the fix, SPC regenerates byte-identical to
+> all 14 published files and SPC/E to 13 of 14. The one remaining difference is
+> `spce/eq1.mdp`'s `gen_seed` (published 770001, code 770100): the published run
+> predates the 100-spacing that keeps replicate seeds from colliding across models.
+> Statistically equivalent, not worth re-running, but it means the SPC/E
+> equilibration cannot be reproduced bit-for-bit from the current code.
+>
+> - [ ] `water-bench --root /ssd1_nas_md/water_benchmarking build --models opc3`
+> - [ ] `water-bench submit-gromacs --model opc3` (Setonix GPU, `w_opc3`)
+> - [ ] `water-bench analyse --model opc3 --engine gromacs --collect`
+> - [ ] `water-bench report` — confirm the `OPC3/gromacs` column, and that nothing carries `[!]`
+> - [x] `LITERATURE["opc3"]` filled in from Table III of the paper (ρ 0.996 ± 0.001, ε 78.4 ± 1,
+>       D 2.30 ± 0.02, ΔH_vap 10.73 ± 0.004 kcal/mol = 44.89 kJ/mol). The paper reports no
+>       rotational correlation time, so `tau2_HH` stays absent and prints `[?]` — unchecked, which
+>       is the honest reading, rather than silently looking confirmed.
+> - [ ] the README results table still says "not yet run" for the OPC3 column
+
 Ordered checklist. Full rationale in `~/.claude/plans/benchmark-two-classical-md-whimsical-dahl.md`.
 Fixed decisions: **N = 2048** (a ≈ 3.95 nm; 1024 violates minimum image at 1.8 nm), **10 × 1 ns
 production per model/engine**, water as GROMOS **solvent**, 298.15 K / 1 atm, ε_RF = 61 for both
