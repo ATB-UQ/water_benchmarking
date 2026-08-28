@@ -13,6 +13,7 @@ dH_vap comparable with experiment, so both numbers are reported.
 """
 from __future__ import annotations
 
+import math
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,6 +28,55 @@ GAS_CONSTANT = 0.00831446         # kJ mol^-1 K^-1
 
 #: Berendsen et al. 1987, J. Phys. Chem. 91:6269 -- the SPC/E self-polarisation term.
 SPCE_POLARISATION_CORRECTION = 5.22  # kJ mol^-1
+
+#: Gas-phase dipole and polarisability behind the self-polarisation correction
+#: (Berendsen et al. 1987): a model whose dipole is enhanced over the gas-phase
+#: value pays a self-energy to hold that enhancement, and it must be given back
+#: before dH_vap is compared with experiment.
+GAS_DIPOLE = 1.85            # D
+POLARISABILITY = 1.44        # Angstrom^3
+_DEBYE = 3.33564e-30         # C m
+_EPS0 = 8.8541878128e-12
+_AVOGADRO = 6.02214076e23
+
+
+def dipole_moment(model: str) -> float:
+    """The model's dipole in Debye, from its charges and geometry.
+
+    mu = 2 q_H r_OH cos(theta/2).  Derived rather than tabulated so it cannot
+    disagree with the parameters actually simulated; reproduces the values in
+    Table I of Izadi & Onufriev 2016 (SPC/E 2.35, OPC3 2.43).
+    """
+    from .. import protocol
+
+    entry = protocol.model(model)
+    theta = 2 * math.asin(entry.r_hh / (2 * entry.r_oh))
+    # e.Angstrom -> Debye; r is held in nm.
+    return 2 * entry.charges[1] * (entry.r_oh * 10) * math.cos(theta / 2) * 4.803205
+
+
+def self_polarisation_energy(model: str) -> float:
+    """(mu - mu_gas)^2 / (2 alpha), in kJ mol^-1."""
+    delta = (dipole_moment(model) - GAS_DIPOLE) * _DEBYE
+    alpha_si = 4 * math.pi * _EPS0 * POLARISABILITY * 1e-30
+    return delta ** 2 / (2 * alpha_si) * _AVOGADRO / 1000.0
+
+
+#: Self-polarisation correction subtracted from dH_vap, per model, kJ mol^-1.
+#: Opt-in per model rather than applied wherever the dipole is enhanced: it is
+#: conventionally applied to the models parameterised with it in mind, and the
+#: published SPC numbers this benchmark is checked against are uncorrected (SPC
+#: would take 3.76 by the same formula).
+#:
+#: OPC3 is corrected because Izadi & Onufriev 2016 correct theirs -- their SPC/E
+#: entry is 10.43 kcal/mol (43.64 kJ/mol), which is the corrected value, not the
+#: ~49 kJ/mol a raw SPC/E run gives.  Both models then land within 0.4 kJ/mol of
+#: the paper: this protocol gives 49.27 - 5.24 = 44.03 against their 43.64, and
+#: 51.66 - 7.03 = 44.62 against their 44.89.
+POLARISATION_CORRECTION = {
+    "spce": SPCE_POLARISATION_CORRECTION,   # 5.22 published; the formula gives 5.24
+    "opc3": 7.03,
+}
 
 
 @dataclass
@@ -100,7 +150,8 @@ def analyse(
     pressure = errors.block_average(series["pressu"])
 
     hov = -energy.mean + GAS_CONSTANT * temperature
-    corrected = hov - SPCE_POLARISATION_CORRECTION if model == "spce" else None
+    polarisation = POLARISATION_CORRECTION.get(model)
+    corrected = hov - polarisation if polarisation is not None else None
 
     return ThermodynamicsResult(
         density_series=series["densit"],

@@ -42,6 +42,14 @@ NOTES = {
     ("spc", "diffusion"): "the reported D carries the Yeh-Hummer finite-size correction "
                           "(+0.17); published SPC values are mostly uncorrected D_PBC, "
                           "for which this run gives 4.14",
+    ("opc3", "dielectric"): "OPC3 was parameterised under Ewald/PME; this protocol is a "
+                            "1.8 nm reaction field at eps_rf = 61, and eps is the property "
+                            "most sensitive to the boundary condition (see results/"
+                            "diagnostics.md) -- a shortfall here is the protocol, not a "
+                            "setup fault",
+    ("opc3", "diffusion"): "as for the dielectric constant: parameterised under PME, run "
+                           "here under a reaction field, and D is the transport property "
+                           "the cutoff moves most (the 0.9 nm control shifts it 7%)",
 }
 
 #: Published values for these models, as a check that the run reproduces the model.
@@ -59,6 +67,28 @@ LITERATURE = {
         "diffusion": (2.4e-9, 2.8e-9),
         "dielectric": (68.0, 74.0),
         "tau2_HH": (1.7, 2.2),
+    },
+    # OPC3: Izadi & Onufriev 2016, J. Chem. Phys. 145:074501, Table III, at
+    # 298.16 K and 1 bar under Ewald/PME:
+    #     rho  = 0.996 +/- 0.001 g/cm^3      eps  = 78.4 +/- 1
+    #     D    = 2.30 +/- 0.02 e-9 m^2/s     dHvap = 10.73 +/- 0.004 kcal/mol
+    # dHvap converts to 44.89 kJ/mol, and it is a *self-polarisation corrected*
+    # value: the paper's own SPC/E entry is 10.43 kcal/mol (43.64 kJ/mol), which is
+    # the corrected number, not the ~49 kJ/mol a raw SPC/E run gives.  So the "hov"
+    # range below is on the raw scale this benchmark reports -- 44.89 + OPC3's 7.03
+    # correction ~ 51.9 -- and hov_polarisation_corrected is what compares with the
+    # paper.  Ranges below are the paper's values with room for the reaction
+    # field this protocol uses and OPC3 was not fitted under -- roughly the margin
+    # the spce entry carries over its own published values.
+    #
+    # tau2_HH is absent because the paper does not report it: Table III lists ten
+    # properties and no rotational correlation time.  It prints "[?]" in the
+    # deviation table, which is the honest reading -- unchecked, not confirmed.
+    "opc3": {
+        "density": (992.0, 1000.0),      # 996 +/- 1
+        "hov": (50.0, 53.5),             # raw; 44.89 + 7.03 polarisation ~ 51.9
+        "diffusion": (2.1e-9, 2.6e-9),   # 2.30 +/- 0.02
+        "dielectric": (73.0, 82.0),      # 78.4 +/- 1, the closest of any 3-point model
     },
 }
 
