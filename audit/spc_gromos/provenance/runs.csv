@@ -1,0 +1,11 @@
+replicate,pbs_job_id,pbs_job_name,host,ranks,walltime_requested,wall_seconds_simulation,seconds_per_step,ns_per_day,submitted_at,completed
+md_01,177616435.gadi-pbs,w_spc_md_01,gadi-cpu-clx-1303.gadi.nci.org.au,24,04:54:00,16319.1,0.016319,5.29,2026-08-27T17:43:48,True
+md_02,177616448.gadi-pbs,w_spc_md_02,gadi-cpu-clx-2199.gadi.nci.org.au,24,04:54:00,16007.3,0.016007,5.4,2026-08-27T17:43:54,True
+md_03,177616466.gadi-pbs,w_spc_md_03,gadi-cpu-clx-0249.gadi.nci.org.au,24,04:54:00,15933.9,0.015934,5.42,2026-08-27T17:44:02,True
+md_04,177616517.gadi-pbs,w_spc_md_04,gadi-cpu-clx-0597.gadi.nci.org.au,24,04:54:00,15764.7,0.015765,5.48,2026-08-27T17:44:08,True
+md_05,177616521.gadi-pbs,w_spc_md_05,gadi-cpu-clx-0597.gadi.nci.org.au,24,04:54:00,16144.2,0.016144,5.35,2026-08-27T17:44:13,True
+md_06,177616527.gadi-pbs,w_spc_md_06,gadi-cpu-clx-2041.gadi.nci.org.au,24,04:54:00,16559.3,0.016559,5.22,2026-08-27T17:44:19,True
+md_07,177616534.gadi-pbs,w_spc_md_07,gadi-cpu-clx-1046.gadi.nci.org.au,24,04:54:00,15342.9,0.015343,5.63,2026-08-27T17:44:24,True
+md_08,177616541.gadi-pbs,w_spc_md_08,gadi-cpu-clx-2857.gadi.nci.org.au,24,04:54:00,14904.8,0.014905,5.8,2026-08-27T17:44:31,True
+md_09,177616550.gadi-pbs,w_spc_md_09,gadi-cpu-clx-0004.gadi.nci.org.au,24,04:54:00,15006.3,0.015006,5.76,2026-08-27T17:44:36,True
+md_10,177616554.gadi-pbs,w_spc_md_10,gadi-cpu-clx-2949.gadi.nci.org.au,24,04:54:00,15598.4,0.015598,5.54,2026-08-27T17:44:42,True
