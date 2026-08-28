@@ -64,6 +64,7 @@ def analyse_segment(
     max_lag: float = 50.0,
     rotation_molecules: int = ROTATION_MOLECULES,
     check_whole: bool = True,
+    r_oh: float = 0.1,
 ) -> SegmentSummary:
     """Stream one segment, returning everything downstream needs from it."""
     from ..gromacs import assert_whole_molecules
@@ -83,7 +84,7 @@ def analyse_segment(
         if check_whole and index == 0:
             # One check per segment: a conversion is either right or wrong for the
             # whole file, and the test is not free.
-            assert_whole_molecules(frame)
+            assert_whole_molecules(frame, r_oh=r_oh)
         if selection is None:
             count = min(rotation_molecules, frame.positions.shape[0])
             # A fixed stride, not a random draw: reproducible, and it samples the
@@ -160,6 +161,7 @@ def analyse_run(
     n_molecules: int = protocol.N_WATERS,
     temperature: float = protocol.TEMPERATURE,
     discard: float = 0.0,
+    r_oh: float = 0.1,
 ) -> RunSummary:
     """Analyse every segment of one run and combine them.
 
@@ -175,7 +177,9 @@ def analyse_run(
         source = segment if callable(segment) else (
             lambda path=segment: read_frames(path, n_molecules)
         )
-        summaries.append(analyse_segment(source(), charges, discard=discard))
+        summaries.append(
+            analyse_segment(source(), charges, discard=discard, r_oh=r_oh)
+        )
     if not summaries:
         raise ValueError("no trajectories to analyse")
 

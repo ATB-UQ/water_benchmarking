@@ -17,6 +17,7 @@ Two traps are handled explicitly and neither is obvious from the .mdp:
 from __future__ import annotations
 
 import os
+import shutil
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
@@ -60,24 +61,64 @@ class MdpStage:
 
 
 def stages() -> list[MdpStage]:
-    """The same ladder as the GROMOS run, stage for stage."""
-    return [
-        MdpStage(
-            s.name, s.steps, s.temperature, s.pressure_coupling,
-            s.generate_velocities, s.write_every, s.minimisation,
+    """The same ladder as the GROMOS run, stage for stage -- with one difference.
+
+    The two engines run the ten production nanoseconds differently, and the shared
+    ladder is written for the GROMOS shape.  GROMOS runs them as ten *independent
+    replicates* from the same equilibrated box, so each must draw fresh velocities
+    or they would be ten copies of one trajectory; that is what
+    imd.run_ladder sets generate_velocities for.  This driver instead *chains* its
+    segments -- slurm_script grompps each one from the previous segment's .gro --
+    so a chained segment must continue the velocities it inherits, not throw them
+    away.  Regenerating them would restart the dynamics ten times from a fresh
+    Maxwell distribution, at the same seed each time, which is neither a chain nor
+    a set of replicates, and would leave a re-equilibration transient at the head of
+    every segment that the GROMACS path (unlike the GROMOS one) does not discard.
+    """
+    ladder = []
+    for s in imd.run_ladder():
+        production = s.name.startswith("md_")
+        ladder.append(
+            MdpStage(
+                s.name, s.steps, s.temperature, s.pressure_coupling,
+                s.generate_velocities and not production,
+                s.write_every, s.minimisation,
+            )
         )
-        for s in imd.run_ladder()
-    ]
+    return ladder
+
+
+#: Water models this package ships its own .itp for, rather than taking one from
+#: the stock force field.  The file is copied into the run directory and included
+#: by name, so it travels to Setonix with the rest of the inputs.
+PACKAGED_ITP = {"opc3.itp"}
+
+
+def water_itp_source(name: str) -> Path:
+    """The packaged .itp of that name, as installed beside this module."""
+    return Path(__file__).parent / "data" / name
 
 
 def write_topology(model: str, directory: Path) -> Path:
-    """A .top holding nothing but water: no solute exists in this system."""
+    """A .top holding nothing but water: no solute exists in this system.
+
+    The model's [ moleculetype ] comes either from the stock gromos54a7.ff or, for
+    a model that force field does not carry, from a copy of this package's own .itp
+    placed beside the .top.  There is deliberately no default: an unknown model
+    used to fall through to spc.itp, which produced a topology that grompp accepts,
+    mdrun runs and every analysis reports -- as SPC, under the other model's name.
+    """
     directory.mkdir(parents=True, exist_ok=True)
-    water_itp = "spce.itp" if model == "spce" else "spc.itp"
+    water_itp = protocol.model(model).gromacs_itp
+    if water_itp in PACKAGED_ITP:
+        include = water_itp
+        shutil.copyfile(water_itp_source(water_itp), directory / water_itp)
+    else:
+        include = f"{FORCEFIELD}/{water_itp}"
     path = directory / f"{model}.top"
     path.write_text(
         f'#include "{FORCEFIELD}/forcefield.itp"\n'
-        f'#include "{FORCEFIELD}/{water_itp}"\n'
+        f'#include "{include}"\n'
         "\n"
         "[ system ]\n"
         f"{protocol.N_WATERS} {model.upper()} water, benchmark box\n"
@@ -278,6 +319,11 @@ def submit(model: str, local_dir: Path, dry_run: bool = False) -> str:
         local_dir / f"water_{protocol.N_WATERS}.gro",
         script,
     ]
+    # A packaged .itp is included by bare name, so it has to travel with the .top;
+    # Setonix's GROMACS has no copy of it.
+    packaged = protocol.model(model).gromacs_itp
+    if packaged in PACKAGED_ITP:
+        inputs.append(local_dir / packaged)
     if dry_run:
         print(f"scp -> {host}:{remote_dir}: {[f.name for f in inputs]}")
         print(f"ssh {host} 'cd {remote_dir} && sbatch run.slurm'")
@@ -422,16 +468,21 @@ def energy_series(edr_files: Sequence[Path], properties: Sequence[str]) -> dict:
     return {name: np.concatenate(values) for name, values in series.items()}
 
 
-def assert_whole_molecules(frame, tolerance: float = 0.02) -> None:
+def assert_whole_molecules(frame, tolerance: float = 0.02, r_oh: float = 0.1) -> None:
     """Fail loudly if a converted frame has molecules split across the boundary.
 
     Cheap, and the failure it catches is otherwise invisible: nothing downstream
     errors on a broken molecule, the numbers just come out wrong.
+
+    ``r_oh`` is the model's constrained O-H distance -- pass it rather than relying
+    on the SPC default.  OPC3's 0.0979 nm happens to sit inside the tolerance
+    around 0.1, so the default would still pass, but only by 2% of the 20% margin
+    this check is meant to have.
     """
     import numpy as np
 
     bond = np.linalg.norm(frame.positions[:, 1] - frame.positions[:, 0], axis=1)
-    broken = int((np.abs(bond - 0.1) > tolerance).sum())
+    broken = int((np.abs(bond - r_oh) > tolerance).sum())
     if broken:
         raise AssertionError(
             f"{broken} molecules are split across the periodic boundary at "

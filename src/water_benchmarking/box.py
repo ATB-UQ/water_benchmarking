@@ -25,7 +25,10 @@ ATOM_NAMES = ("OW", "HW1", "HW2")
 SEAM_CLASH = 0.24
 WINDOW_GROWTH = 0.02          # nm, how fast the cut window grows when short
 LOCAL_DENSITY_RADIUS = 0.45   # nm, neighbour shell used to spot crowded molecules
-# SPC/SPC-E masses, needed for the centre of mass and for the density assert.
+# Masses, needed for the centre of mass and for the density assert.  The same for
+# every model here: OPC3's amber file writes oxygen as 16.00000, a 0.004% difference
+# that the packaged opc3.itp drops in favour of this value so the box builder and the
+# topology cannot disagree.
 MASSES = np.array([15.99940, 1.00800, 1.00800])
 MOLAR_MASS = float(MASSES.sum())
 AVOGADRO = 6.02214076e23

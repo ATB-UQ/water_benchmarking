@@ -4,7 +4,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from . import box, forcefield, gadi, gromacs, imd, protocol, report, trc
+from . import box, gadi, gromacs, imd, protocol, report, trc
 from .analysis import aggregate, density_hov, errors
 
 
@@ -13,19 +13,32 @@ def _run_dir(model: str, engine: str, root: Path) -> Path:
 
 
 def cmd_build(args) -> None:
-    """Write topology, box and inputs for both engines without running anything."""
-    for model in args.models:
-        gromos_dir = _run_dir(model, "gromos", args.root)
-        gadi.prepare(model, gromos_dir)
-        print(f"{model}: GROMOS inputs in {gromos_dir}")
+    """Write topology, box and inputs for every engine a model is run with.
 
-        gmx_dir = _run_dir(model, "gromacs", args.root)
-        gromacs.write_all(gmx_dir, model)
-        water_box = box.build(gmx_dir)
-        (gmx_dir / "run.slurm").write_text(
-            gromacs.slurm_script(model, str(gmx_dir))
-        )
-        print(f"{model}: GROMACS inputs in {gmx_dir} (box edge {water_box.edge:.4f} nm)")
+    Not every model is run with both.  OPC3 has no 54A7 building block, so there is
+    no GROMOS topology to build for it; the registry says which engines apply and
+    this loop asks rather than assuming.
+    """
+    for model in args.models:
+        engines = protocol.engines_for(model)
+
+        if "gromos" in engines:
+            gromos_dir = _run_dir(model, "gromos", args.root)
+            gadi.prepare(model, gromos_dir)
+            print(f"{model}: GROMOS inputs in {gromos_dir}")
+
+        if "gromacs" in engines:
+            gmx_dir = _run_dir(model, "gromacs", args.root)
+            gromacs.write_all(gmx_dir, model)
+            water_box = box.build(gmx_dir)
+            (gmx_dir / "run.slurm").write_text(
+                gromacs.slurm_script(model, str(gmx_dir))
+            )
+            print(f"{model}: GROMACS inputs in {gmx_dir} (box edge {water_box.edge:.4f} nm)")
+
+        skipped = [e for e in ("gromos", "gromacs") if e not in engines]
+        if skipped:
+            print(f"{model}: not run with {', '.join(skipped)}")
 
 
 def cmd_run(args) -> None:
@@ -50,8 +63,14 @@ def cmd_analyse(args) -> None:
     if getattr(args, "collect", False) and args.engine == "gromacs":
         gromacs.collect(args.model, run_dir)
     results = analyse_run(args.model, args.engine, run_dir)
+    # Not every value is a number: dielectric_relation records which relation was
+    # used to turn the dipole fluctuation into eps, and formatting a str with
+    # ":.6g" raises -- after the whole trajectory analysis has been done and with
+    # nothing written to disk, so the work is simply lost.
+    width = max((len(key) for key in results.values), default=14)
     for key, value in sorted(results.values.items()):
-        print(f"{key:14s} {value:.6g}")
+        rendered = value if isinstance(value, str) else f"{value:.6g}"
+        print(f"{key:{width}s}  {rendered}")
 
 
 def analyse_run(model: str, engine: str, run_dir: Path) -> report.Results:
@@ -64,7 +83,8 @@ def analyse_run(model: str, engine: str, run_dir: Path) -> report.Results:
     engine-to-engine difference mean something.
     """
     results = report.Results(model=model, engine=engine)
-    charges = forcefield.EXPECTED_CHARGES[model]
+    entry = protocol.model(model)
+    charges = entry.charges
     # GROMOS production is ten independent replicates with fresh velocities, so
     # the head of each is discarded; the GROMACS segments are one continuous
     # trajectory already past its equilibration and lose nothing.
@@ -86,7 +106,9 @@ def analyse_run(model: str, engine: str, run_dir: Path) -> report.Results:
         trajectories = _gromacs_segments(run_dir)
 
     if trajectories:
-        summary = aggregate.analyse_run(trajectories, charges, discard=discard)
+        summary = aggregate.analyse_run(
+            trajectories, charges, discard=discard, r_oh=entry.r_oh
+        )
         results.summary = summary
         results.values["diffusion"] = summary.diffusion.d_corrected
         results.values["diffusion_pbc"] = summary.diffusion.d_pbc
@@ -142,10 +164,9 @@ def _record_gromacs_thermodynamics(results: report.Results, series, model: str) 
     hov = -energy.mean + density_hov.GAS_CONSTANT * protocol.TEMPERATURE
     results.values["hov"] = hov
     results.uncertainties["hov"] = energy.error
-    if model == "spce":
-        results.values["hov_polarisation_corrected"] = (
-            hov - density_hov.SPCE_POLARISATION_CORRECTION
-        )
+    polarisation = density_hov.POLARISATION_CORRECTION.get(model)
+    if polarisation is not None:
+        results.values["hov_polarisation_corrected"] = hov - polarisation
 
 
 def _gromacs_segments(run_dir: Path) -> list:
@@ -220,14 +241,16 @@ def main(argv: list[str] | None = None) -> None:
     build.set_defaults(func=cmd_build)
 
     run = sub.add_parser("run", help="run the GROMOS ladder on Gadi")
-    run.add_argument("--model", required=True, choices=sorted(protocol.MODELS))
+    run.add_argument("--model", required=True,
+                     choices=protocol.models_for_engine("gromos"))
     run.add_argument("--dry-run", action="store_true",
                      help="print the shim invocations instead of submitting")
     run.set_defaults(func=cmd_run)
 
     submit = sub.add_parser("submit-gromacs",
                             help="stage and sbatch the GROMACS ladder on Setonix")
-    submit.add_argument("--model", required=True, choices=sorted(protocol.MODELS))
+    submit.add_argument("--model", required=True,
+                        choices=protocol.models_for_engine("gromacs"))
     submit.add_argument("--dry-run", action="store_true")
     submit.set_defaults(func=cmd_submit_gromacs)
 

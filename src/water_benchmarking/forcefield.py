@@ -14,8 +14,12 @@ from . import protocol
 
 def build_topology(model: str, output_dir: Path) -> Path:
     """Write <model>.top for one water model and return its path."""
-    if model not in protocol.MODELS:
-        raise ValueError(f"unknown model {model!r}; expected one of {sorted(protocol.MODELS)}")
+    entry = protocol.model(model)
+    if entry.gromos_block is None:
+        raise ValueError(
+            f"{model!r} has no 54A7 solvent building block, so no GROMOS topology "
+            f"can be built for it; it is run with {'/'.join(entry.engines)} only"
+        )
     output_dir.mkdir(parents=True, exist_ok=True)
     destination = output_dir / f"{model}.top"
 
@@ -24,7 +28,7 @@ def build_topology(model: str, output_dir: Path) -> Path:
             str(protocol.GROMOS_BIN / "make_top"),
             "@build", str(protocol.FORCEFIELD_MTB),
             "@param", str(protocol.FORCEFIELD_IFP),
-            "@solv", protocol.MODELS[model],
+            "@solv", entry.gromos_block,
         ],
         capture_output=True,
         text=True,
@@ -51,11 +55,10 @@ def solvent_charges(topology: Path) -> list[float]:
     return charges
 
 
-#: Published charges, used to prove make_top picked the block we asked for.
-EXPECTED_CHARGES = {
-    "spc": (-0.82, 0.41, 0.41),
-    "spce": (-0.8476, 0.4238, 0.4238),
-}
+#: Published charges, used to prove make_top picked the block we asked for -- and,
+#: for the GROMACS path, to weight the box dipole (cli.analyse_run -> dielectric).
+#: Held in the model registry so the two engines cannot disagree about a model.
+EXPECTED_CHARGES = {name: entry.charges for name, entry in protocol.MODELS.items()}
 
 
 def verify_topology(topology: Path, model: str) -> None:

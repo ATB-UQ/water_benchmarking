@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "water_benchmarking"
 version = "0.1.0"
-description = "Benchmark classical water models (SPC, SPC/E) against experiment with GROMOS and GROMACS"
+description = "Benchmark classical water models (SPC, SPC/E, OPC3) against experiment with GROMOS and GROMACS"
 requires-python = ">=3.9"
 dependencies = ["numpy"]
 
@@ -14,3 +14,9 @@ water-bench = "water_benchmarking.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+# The OPC3 [ moleculetype ] is shipped with the package: it is not in the stock
+# gromos54a7.ff this benchmark builds every topology on, and it has to travel to
+# Setonix beside the .top.
+[tool.setuptools.package-data]
+water_benchmarking = ["data/*.itp"]

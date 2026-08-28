@@ -89,7 +89,10 @@ def deviation_table(results: list[Results]) -> list[list[str]]:
                 continue
             percent = experiment.deviation(value, key)
             known = experiment.within_literature(value, result.model, key)
-            flag = "" if known is None else ("" if known else "  [!]")
+            # "?" is not the same as no mark: an absent literature range used to
+            # render exactly like a value inside one, so a property nobody had a
+            # published number for read as confirmed.
+            flag = "  [?]" if known is None else ("" if known else "  [!]")
             row.append(f"{percent:+.1f}%{flag}")
         rows.append(row)
     return rows
@@ -164,6 +167,8 @@ def write_report(results: list[Results], output_dir: Path) -> Path:
         "",
         "`[!]` marks a value outside the published range for that model, which points",
         "at the setup rather than at the model -- unless a note below says otherwise.",
+        "`[?]` marks a property with no published range on record for that model, so",
+        "the run is unchecked against the model rather than confirmed to reproduce it.",
         "tau1(mu) is omitted: the experimental Debye time is a collective quantity and",
         "not directly comparable to the single-molecule correlation time simulated.",
         "",

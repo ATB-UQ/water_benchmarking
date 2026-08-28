@@ -19,7 +19,7 @@ from .. import experiment  # noqa: E402
 
 #: One colour per model, consistent across every figure; engines are distinguished
 #: by line style so a model's two curves read as a pair.
-MODEL_COLOURS = {"spc": "#0072B2", "spce": "#D55E00"}
+MODEL_COLOURS = {"spc": "#0072B2", "spce": "#D55E00", "opc3": "#009E73"}
 ENGINE_STYLES = {"GROMOS": "-", "GROMACS": "--"}
 
 
