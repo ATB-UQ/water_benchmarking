@@ -36,6 +36,13 @@ FORCEFIELD = "gromos54a7.ff"
 #: account (m72-gpu), not the m72 the CPU work bills to.
 SETONIX = {
     "ssh_alias": "setonix",
+    #: Bulk transfer goes to the data movers (setonix-dm*), not the login node.
+    #: Pawsey provides them for exactly this and asks that large transfers use them,
+    #: so a multi-GB pull does not sit on a shared, throttled login node.  Measured
+    #: from this host on 2026-08-29: the data mover is *not* faster per connection
+    #: (~19 MB/s either way) -- the ceiling is per-stream, not the link -- which is
+    #: why collect() also runs its pulls concurrently: 4 streams reach ~72 MB/s.
+    "transfer_alias": "setonix-dm",
     "remote_root": "/scratch/m72/mstroet/water_benchmarking",
     "account": "m72-gpu",
     "partition": "gpu",
@@ -350,35 +357,67 @@ LOCAL_GMX = GROMACS_PREFIX / "bin" / "gmx"
 LOCAL_GMXLIB = GROMACS_PREFIX / "share" / "gromacs" / "top"
 
 
+#: Concurrent scp streams used to pull results back.  A single ssh connection
+#: tops out around 19 MB/s to Pawsey from this host regardless of endpoint or
+#: cipher -- the limit is per-stream, not the link -- and throughput scales very
+#: nearly linearly: 2 streams measured 31 MB/s, 4 measured 72 MB/s.  Four keeps a
+#: 2.2 GB model pull under a minute without opening a connection per file.
+TRANSFER_STREAMS = 4
+
+
 def collect(model: str, local_dir: Path) -> list[Path]:
-    """Pull one model's results back from Setonix.
+    """Pull one model's results back from Setonix, over the data movers.
 
     The compressed .xtc comes back rather than a converted .g96: the same 1 ns
     segment is ~220 MB as .xtc and ~2.8 GB as text, and the conversion is done
     locally anyway.  Ten segments per model is then a 2.2 GB transfer instead of 28.
+
+    Two things about how it is pulled, both measured rather than assumed:
+
+    * **Not through the login node.**  `transfer_alias` is a data mover; Pawsey
+      provides them for bulk transfer and asks that it not go through the shared
+      login nodes.  It is not faster per connection -- that was measured -- it is
+      simply the right endpoint, and it leaves the login node free.
+    * **In parallel.**  One connection reaches ~19 MB/s whatever the endpoint, so
+      the pull is split across TRANSFER_STREAMS connections, which is ~3.8x.
     """
     import subprocess
+    from concurrent.futures import ThreadPoolExecutor
 
     local_dir.mkdir(parents=True, exist_ok=True)
     remote = f"{SETONIX['remote_root']}/{model}"
-    host = SETONIX["ssh_alias"]
+    host = SETONIX.get("transfer_alias", SETONIX["ssh_alias"])
 
-    def pull(patterns: Sequence[str], required: bool) -> None:
+    def scp(sources: Sequence[str]) -> subprocess.CompletedProcess:
         # One unquoted source argument per pattern: scp hands each to the remote
         # shell, which expands the glob.  Joining them into a single quoted string
         # makes scp look for one absurdly long literal filename instead.
-        sources = [f"{host}:{remote}/{pattern}" for pattern in patterns]
-        result = subprocess.run(
-            ["scp", "-q", "-o", "BatchMode=yes", *sources, str(local_dir)],
+        return subprocess.run(
+            ["scp", "-q", "-o", "BatchMode=yes",
+             *[f"{host}:{remote}/{p}" for p in sources], str(local_dir)],
             capture_output=True, text=True,
         )
-        if result.returncode and required:
-            raise RuntimeError(f"could not pull {patterns} from {host}: {result.stderr.strip()}")
 
-    pull(["md_*.xtc", "md_*.tpr", "md_*.edr"], required=True)
+    def pull(patterns: Sequence[str], required: bool) -> None:
+        """Split the patterns over concurrent connections and run them together."""
+        groups = [list(patterns[i::TRANSFER_STREAMS]) for i in range(TRANSFER_STREAMS)]
+        with ThreadPoolExecutor(max_workers=TRANSFER_STREAMS) as pool:
+            results = list(pool.map(scp, [g for g in groups if g]))
+        failed = [r for r in results if r.returncode]
+        if failed and required:
+            raise RuntimeError(
+                f"could not pull {list(patterns)} from {host}: "
+                + "; ".join(r.stderr.strip() for r in failed)
+            )
+
+    # Per segment rather than one glob per file type, so the streams carry roughly
+    # equal shares: the .xtc is ~220 MB and the .tpr and .edr are a rounding error,
+    # so splitting by type would put the whole transfer on one connection.
+    segments = [f"md_{n:02d}" for n in range(1, protocol.PRODUCTION_SEGMENTS + 1)]
+    pull([f"{seg}.{ext}" for seg in segments for ext in ("xtc", "tpr", "edr")],
+         required=True)
     # Nice to have, and absent often enough not to fail the transfer over.
-    pull(["eq3.edr"], required=False)
-    pull(["*.out"], required=False)
+    pull(["eq3.edr", "*.out"], required=False)
 
     return sorted(local_dir.glob("md_*.xtc"))
 

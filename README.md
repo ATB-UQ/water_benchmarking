@@ -206,3 +206,13 @@ water-bench report                 # results/summary.{md,csv} and figures
 ```
 
 Runs live under `/ssd1_nas_md/water_benchmarking/<model>/<engine>/`.
+
+**Transfers use the Setonix data movers, in parallel.** `submit-gromacs` talks to the
+login node (`setonix`) for `sbatch`; `analyse --collect` pulls results over `setonix-dm`
+(`data-mover.pawsey.org.au`), which is the endpoint Pawsey designates for bulk transfer and
+keeps a 2.2 GB pull off a shared login node. Measured here: the data mover is *not* faster
+per connection (~19 MB/s either way — the ceiling is per-stream, not the link, and not the
+cipher), but throughput scales almost linearly with concurrency (2 streams 31 MB/s, 4
+streams 72 MB/s), so `collect()` splits the pull across `gromacs.TRANSFER_STREAMS = 4`
+connections and moves a model in under a minute. See the platform
+[`CLAUDE.md`](../CLAUDE.md) for which other siblings still transfer through the login node.
