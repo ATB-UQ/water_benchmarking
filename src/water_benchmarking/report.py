@@ -11,6 +11,11 @@ from . import experiment, protocol
 PROPERTIES = (
     ("density", "Density", "kg m^-3", "{:.1f}"),
     ("hov", "dH_vap", "kJ mol^-1", "{:.2f}"),
+    # The raw dH_vap is the model's own quantity; this is the one that compares
+    # with experiment for a model whose dipole was enhanced to mimic polarisation.
+    # Without the row, OPC3 reads as +17% off experiment with nothing saying that
+    # its corrected value is +1.4% -- see docs/polarisation_correction.md.
+    ("hov_polarisation_corrected", "dH_vap - E_pol", "kJ mol^-1", "{:.2f}"),
     ("diffusion", "Self-diffusion D", "1e-9 m^2 s^-1", "{:.2f}"),
     ("tau2_HH", "Rot. corr. time tau2(HH)", "ps", "{:.2f}"),
     ("tau1_dipole", "Rot. corr. time tau1(mu)", "ps", "{:.2f}"),

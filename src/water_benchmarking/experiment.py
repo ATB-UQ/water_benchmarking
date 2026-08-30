@@ -20,6 +20,10 @@ class Reference:
 EXPERIMENT = {
     "density": Reference(997.05, "kg m^-3", "Kell 1975, J. Chem. Eng. Data 20:97"),
     "hov": Reference(43.99, "kJ mol^-1", "Wagner & Pruss 2002, IAPWS-95"),
+    # The same measurement as "hov"; a model that carries a self-polarisation
+    # correction is compared with experiment after subtracting it.
+    "hov_polarisation_corrected": Reference(
+        43.99, "kJ mol^-1", "Wagner & Pruss 2002, IAPWS-95"),
     "diffusion": Reference(2.30e-9, "m^2 s^-1", "Holz et al. 2000, PCCP 2:4740"),
     "dielectric": Reference(78.4, "-", "Fernandez et al. 1997, J. Phys. Chem. Ref. Data 26:1125"),
     "tau2_HH": Reference(2.0, "ps", "NMR relaxation; Ludwig 2001, Angew. Chem. 40:1808"),
@@ -67,6 +71,7 @@ LITERATURE = {
         "diffusion": (2.4e-9, 2.8e-9),
         "dielectric": (68.0, 74.0),
         "tau2_HH": (1.7, 2.2),
+        "hov_polarisation_corrected": (43.0, 45.0),   # Berendsen 1987
     },
     # OPC3: Izadi & Onufriev 2016, J. Chem. Phys. 145:074501, Table III, at
     # 298.16 K and 1 bar under Ewald/PME:
@@ -89,6 +94,7 @@ LITERATURE = {
         "hov": (50.0, 53.5),             # raw; 44.89 + 7.03 polarisation ~ 51.9
         "diffusion": (2.1e-9, 2.6e-9),   # 2.30 +/- 0.02
         "dielectric": (73.0, 82.0),      # 78.4 +/- 1, the closest of any 3-point model
+        "hov_polarisation_corrected": (43.5, 46.0),   # the paper's 44.89
     },
 }
 
