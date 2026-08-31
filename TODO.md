@@ -47,6 +47,14 @@
 >       is the honest reading, rather than silently looking confirmed.
 > - [x] README results table filled in for OPC3
 
+> **Update, 2026-08-31 (data retention).** The raw trajectories are gone: 35.7 GB
+> locally and 13 GB on Setonix `/scratch`, all 69 files SHA-256'd first into
+> `audit/`. What remains is 1.2 GB of inputs, energies, logs and final structures.
+> Density and dH_vap stay recomputable from the kept `.edr`/`.tre.gz` (verified:
+> OPC3 reproduces 994.4 / 51.66 exactly); D, tau2 and eps do not, and rest on the
+> audit records plus the checksums. `audit/README.md` states the asymmetry, and
+> `water_benchmarking.audit.build()` regenerates a record for any future run.
+
 Ordered checklist. Full rationale in `~/.claude/plans/benchmark-two-classical-md-whimsical-dahl.md`.
 Fixed decisions: **N = 2048** (a ≈ 3.95 nm; 1024 violates minimum image at 1.8 nm), **10 × 1 ns
 production per model/engine**, water as GROMOS **solvent**, 298.15 K / 1 atm, ε_RF = 61 for both
