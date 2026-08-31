@@ -1,0 +1,8 @@
+#include "gromos54a7.ff/forcefield.itp"
+#include "opc3.itp"
+
+[ system ]
+2048 OPC3 water, benchmark box
+
+[ molecules ]
+SOL                 2048

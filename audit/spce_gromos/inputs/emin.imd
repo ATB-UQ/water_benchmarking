@@ -1,0 +1,63 @@
+TITLE
+2048 SPCE water, emin
+benchmark protocol: dt 0.001 ps, cutoff 1.8 nm, EPSRF 61
+END
+SYSTEM
+#      NPM      NSM
+         0      2048
+END
+STEP
+#   NSTLIM         T        DT
+      1000       0.0     0.001
+END
+INITIALISE
+#    NTIVEL   NTISHK   NTINHT    NTINHB    NTISHI  NTIRTC     NTICOM   NTISTI      IG     TEMPI
+      0       0        0         0         0       0          0        0       770100     0.00
+END
+BOUNDCOND
+#      NTB    NDFMIN
+       1      0
+END
+FORCE
+#      NTF array
+# bonds    angles    imp.     dihe     charge nonbonded
+# H        H         H        H
+  1     1     1     1     1     1
+# NEGR    NRE(1)
+     1     6144
+END
+CONSTRAINT
+#      NTC       NTCP   NTCP0(1)     NTCS      NTCS0(1)
+         1          1    0.00001        1      0.00001
+END
+PAIRLIST
+#    algorithm    NSNB    RCUTP    RCUTL    SIZE    TYPE
+     0  5  1.8  1.8     0.4     0
+END
+NONBONDED
+# RCRF and ASHAPE track the long-range cutoff: the reaction field is the continuum
+# beyond the cutoff, so a radius disagreeing with RCUTL is an inconsistent
+# electrostatic treatment.
+# NLRELE    APPAK      RCRF     EPSRF  NSLFEXCL
+       1      0.0       1.8          61     1
+# NSHAPE   ASHAPE    NA2CLC   TOLA2   EPSLS
+       -1       1.8        2   1e-10       0
+# NKX    NKY   NKZ    KCUT
+   10     10    10     100
+# NGX   NGY   NGZ  NASORD  NFDORD   NALIAS  NSPORD
+   32    32    32       3       2        3       4
+# NQEVAL   FACCUR   NRDGRD   NWRGRD   NLRLJ    SLVDNS
+  100000      1.6        0        0       0      33.3
+END
+PRINTOUT
+#     NTPR          NTPP
+        1000          0
+END
+COVALENTFORM
+#    NTBBH    NTBAH     NTBDN
+         0         0         0
+END
+ENERGYMIN
+#    NTEM    NCYC    DELE    DX0     DXM     NMIN    FLIM
+        1       1    0.01    0.01    0.05     100     0.0
+END

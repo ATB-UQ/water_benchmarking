@@ -1,0 +1,55 @@
+; 2048 OPC3 water -- o3rf78
+; OPC3 follow-up: RF at OPC3's own dielectric constant (78.4)
+; dt 2 fs, cutoff 1.4 nm, REACTION-FIELD, epsilon_rf 78.4
+integrator               = md
+dt                       = 0.002
+nsteps                   = 5000000
+
+; --- neighbour searching and interactions ---
+cutoff-scheme            = Verlet
+pbc                      = xyz
+verlet-buffer-tolerance  = 0.005
+nstlist                  = 10
+rlist                    = 1.4
+coulombtype              = reaction-field
+rcoulomb                 = 1.4
+epsilon_r                = 1
+epsilon_rf               = 78.4
+vdwtype                  = cut-off
+rvdw                     = 1.4
+; as in the main protocol: potential-shift would change the LJ energy and so dH_vap
+vdw-modifier             = none
+DispCorr                 = no
+
+; --- constraints ---
+; Rigid water by SETTLE.  2 fs is safe with no flexible bonds; the main protocol's
+; 1 fs exists to mirror GROMOS, which is not a constraint here.
+constraints              = none
+constraint-algorithm     = lincs
+
+; --- coupling ---
+tcoupl                   = berendsen
+tc-grps                  = System
+tau_t                    = 0.1
+ref_t                    = 298.15
+pcoupl                   = berendsen
+pcoupltype               = isotropic
+tau_p                    = 0.5
+compressibility          = 2.755e-05
+ref_p                    = 1.01325
+gen_vel                  = no
+continuation             = yes
+
+; --- centre of mass motion ---
+comm-mode                = linear
+comm-grps                = System
+nstcomm                  = 500
+
+; --- output ---
+nstxout                  = 0
+nstvout                  = 0
+nstfout                  = 0
+nstxout-compressed       = 100
+compressed-x-grps        = System
+nstenergy                = 100
+nstlog                   = 100

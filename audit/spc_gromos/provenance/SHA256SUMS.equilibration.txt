@@ -1,0 +1,8 @@
+# Equilibration trajectories, excluded from the record like the production
+# ones.  Catalogued separately because the original hand-built manifest
+# covered only md_*.trc.gz.
+
+385bd63036e8438caea3c2a94cec81384c394d8435b5d5454026205a028fe84e  emin.trc.gz
+743f201475a966d4e0c6001787f76d9be5176d79f072960390025e5c10db203f  eq1.trc.gz
+0fdd5764486b234d280eb77441665cd8a5d08defbc7b1bb659d1f49fc787f597  eq2.trc.gz
+3d1b96a52c0584363c651303e7b811587276ef82400be494d795335fbf39a0ad  eq3.trc.gz

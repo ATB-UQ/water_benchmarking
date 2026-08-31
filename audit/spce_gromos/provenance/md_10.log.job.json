@@ -1,0 +1,26 @@
+{
+ "completion_marker": "finished successfully",
+ "gzip_after_pull": [
+  "/ssd1_nas_md/water_benchmarking/spce/gromos/md_10.trc",
+  "/ssd1_nas_md/water_benchmarking/spce/gromos/md_10.tre"
+ ],
+ "host": "gadi",
+ "job_id": "177616623.gadi-pbs",
+ "job_name": "w_spce_md_10",
+ "nsteps": 1000000,
+ "primary_log": "/ssd1_nas_md/water_benchmarking/spce/gromos/md_10.log",
+ "pull_files": [
+  "/ssd1_nas_md/water_benchmarking/spce/gromos/md_10.cnf",
+  "/ssd1_nas_md/water_benchmarking/spce/gromos/md_10.trc",
+  "/ssd1_nas_md/water_benchmarking/spce/gromos/md_10.tre"
+ ],
+ "remote_dir": "/scratch/m72/mzs564/gromos_runs/ssd1_nas_md/water_benchmarking/spce/gromos",
+ "remote_engine_out": "",
+ "remote_primary_log": "/scratch/m72/mzs564/gromos_runs/ssd1_nas_md/water_benchmarking/spce/gromos/gjw_md_10_1000711.md.log",
+ "remote_root": "/scratch/m72/mzs564/gromos_runs",
+ "remote_script": "/scratch/m72/mzs564/gromos_runs/ssd1_nas_md/water_benchmarking/spce/gromos/gjw_md_10_1000711.pbs",
+ "remote_stdout": "/scratch/m72/mzs564/gromos_runs/ssd1_nas_md/water_benchmarking/spce/gromos/gjw_md_10_1000711.pbs.out",
+ "scheduler": "pbs",
+ "submitted_at": "2026-08-27T17:46:04",
+ "walltime": "05:14:00"
+}

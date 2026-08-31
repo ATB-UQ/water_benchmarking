@@ -1,0 +1,8 @@
+#include "gromos54a7.ff/forcefield.itp"
+#include "gromos54a7.ff/spc.itp"
+
+[ system ]
+2048 SPC water, benchmark box
+
+[ molecules ]
+SOL                 16384

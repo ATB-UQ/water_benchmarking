@@ -1,0 +1,1368 @@
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f emin.mdp -c water_2048.gro -p opc3.top -o emin.tpr -maxwarn 3
+
+
+WARNING 1 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group rest is 12285.00
+The integrator does not provide a ensemble temperature, there is no system ensemble temperature
+
+There was 1 WARNING
+
+GROMACS reminds you: "Science Won't Change You" (The Talking Heads)
+
+Setting the LD random seed to -541218817
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+Analysing residue names:
+There are:  2048      Water residues
+
+This run will generate roughly 1 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: Command line:
+0:   gmx_mpi mdrun -deffnm emin -ntomp 8
+0: 
+0: Reading file emin.tpr, VERSION 2026.1-spack (single precision)
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE_GPU_AWARE_MPI environment variable.
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the CPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: 
+0: Steepest Descents:
+0:    Tolerance (Fmax)   =  1.00000e+02
+0:    Number of steps    =         1000
+0: 
+0: Energy minimization has stopped, but the forces have not converged to the
+0: requested precision Fmax < 100 (which may not be possible for your system).
+0: It stopped because the algorithm tried to make a new step whose size was too
+0: small, or there was no change in the energy since last step. Either way, we
+0: regard the minimization as converged to within the available machine
+0: precision, given your starting configuration and EM parameters.
+0: 
+0: Double precision normally gives you higher accuracy, but this is often not
+0: needed for preparing to run molecular dynamics.
+0: You might need to increase your constraint accuracy, or turn
+0: off constraints altogether (set constraints = none in mdp file)
+0: 
+0: writing lowest energy coordinates.
+0: 
+0: Steepest Descents converged to machine precision in 15 steps,
+0: but did not reach the requested Fmax < 100.
+0: Potential Energy  = -8.6181062e+04
+0: Maximum force     =  4.9588135e+03 on atom 463
+0: Norm of force     =  4.7302018e+02
+0: 
+0: GROMACS reminds you: "You Think That You're Bigger When You Fill the Void" (Urban Dance Squad)
+0: 
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f eq1.mdp -c emin.gro -p opc3.top -o eq1.tpr -maxwarn 3
+
+
+WARNING 1 [file eq1.mdp]:
+  The Berendsen thermostat does not generate the correct kinetic energy
+  distribution, and should not be used for new production simulations (in
+  our opinion). We would recommend the V-rescale thermostat.
+
+
+WARNING 2 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group System is 12285.00
+
+There were 2 WARNINGs
+
+GROMACS reminds you: "Input, output, electricity" (Joni Mitchell)
+
+Setting the LD random seed to -269193217
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+
+Velocities were taken from a Maxwell distribution at 50 K
+Analysing residue names:
+There are:  2048      Water residues
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 50 K
+
+Calculated rlist for 1x1 atom pair-list as 1.805 nm, buffer size 0.005 nm
+
+Set rlist, assuming 4x4 atom pair-list, to 1.802 nm, buffer size 0.002 nm
+
+Note that mdrun will redetermine rlist based on the actual pair-list setup
+
+This run will generate roughly 1 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: Command line:
+0:   gmx_mpi mdrun -deffnm eq1 -ntomp 8 -nb gpu
+0: 
+0: Reading file eq1.tpr, VERSION 2026.1-spack (single precision)
+0: Changing nstlist from 5 to 100, rlist from 1.802 to 1.956
+0: 
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE_GPU_AWARE_MPI environment variable.
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the GPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: starting mdrun '2048 OPC3 water, benchmark box'
+0: 10000 steps,     10.0 ps.
+0: 
+0: Writing final coordinates.
+0: 
+0:                Core t (s)   Wall t (s)        (%)
+0:        Time:       10.403        1.301      799.5
+0:                  (ns/day)    (hour/ns)    (ms/step)  (Matom*steps/s) 
+0: Performance:      664.077        0.036        0.130           47.223 
+0: 
+0: GROMACS reminds you: "AH ....Satisfaction" (IRIX imapd)
+0: 
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f eq2.mdp -c eq1.gro -p opc3.top -o eq2.tpr -maxwarn 3
+
+
+WARNING 1 [file eq2.mdp]:
+  The Berendsen thermostat does not generate the correct kinetic energy
+  distribution, and should not be used for new production simulations (in
+  our opinion). We would recommend the V-rescale thermostat.
+
+
+WARNING 2 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group System is 12285.00
+
+There were 2 WARNINGs
+
+GROMACS reminds you: "AH ....Satisfaction" (IRIX imapd)
+
+Setting the LD random seed to -571803665
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+
+Taking velocities from 'eq1.gro'
+Analysing residue names:
+There are:  2048      Water residues
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 298.15 K
+
+Calculated rlist for 1x1 atom pair-list as 1.817 nm, buffer size 0.017 nm
+
+Set rlist, assuming 4x4 atom pair-list, to 1.810 nm, buffer size 0.010 nm
+
+Note that mdrun will redetermine rlist based on the actual pair-list setup
+
+This run will generate roughly 1 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: Command line:
+0:   gmx_mpi mdrun -deffnm eq2 -ntomp 8 -nb gpu
+0: 
+0: Reading file eq2.tpr, VERSION 2026.1-spack (single precision)
+0: Changing nstlist from 5 to 40, rlist from 1.81 to 1.969
+0: 
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE_GPU_AWARE_MPI environment variable.
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the GPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: starting mdrun '2048 OPC3 water, benchmark box'
+0: 20000 steps,     20.0 ps.
+0: 
+0: Writing final coordinates.
+0: 
+0: NOTE: 12 % of the run time was spent in pair search,
+0:       you might want to increase nstlist (this has no effect on accuracy)
+0: 
+0:                Core t (s)   Wall t (s)        (%)
+0:        Time:       21.529        2.692      799.8
+0:                  (ns/day)    (hour/ns)    (ms/step)  (Matom*steps/s) 
+0: Performance:      641.952        0.037        0.135           45.650 
+0: 
+0: GROMACS reminds you: "Or (horrors!) use Berendsen!" (Justin Lemkul)
+0: 
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f eq3.mdp -c eq2.gro -p opc3.top -o eq3.tpr -maxwarn 3
+
+
+WARNING 1 [file eq3.mdp]:
+  The Berendsen thermostat does not generate the correct kinetic energy
+  distribution, and should not be used for new production simulations (in
+  our opinion). We would recommend the V-rescale thermostat.
+
+
+WARNING 2 [file eq3.mdp]:
+  The Berendsen barostat does not generate any strictly correct ensemble,
+  and should not be used for new production simulations (in our opinion).
+  We recommend using the C-rescale barostat instead.
+
+
+WARNING 3 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group System is 12285.00
+
+There were 3 WARNINGs
+
+GROMACS reminds you: "Or (horrors!) use Berendsen!" (Justin Lemkul)
+
+Setting the LD random seed to -1359270402
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+
+Taking velocities from 'eq2.gro'
+Analysing residue names:
+There are:  2048      Water residues
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 298.15 K
+
+Calculated rlist for 1x1 atom pair-list as 1.817 nm, buffer size 0.017 nm
+
+Set rlist, assuming 4x4 atom pair-list, to 1.810 nm, buffer size 0.010 nm
+
+Note that mdrun will redetermine rlist based on the actual pair-list setup
+
+This run will generate roughly 4 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: 
+0: Command line:
+0:   gmx_mpi mdrun -deffnm eq3 -ntomp 8 -nb gpu
+0: 
+0: Reading file eq3.tpr, VERSION 2026.1-spack (single precision)
+0: Changing nstlist from 5 to 40, rlist from 1.81 to 1.969
+0: 
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE_GPU_AWARE_MPI environment variable.
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the GPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: starting mdrun '2048 OPC3 water, benchmark box'
+0: 100000 steps,    100.0 ps.
+0: 
+0: Writing final coordinates.
+0: 
+0: NOTE: 10 % of the run time was spent in pair search,
+0:       you might want to increase nstlist (this has no effect on accuracy)
+0: 
+0:                Core t (s)   Wall t (s)        (%)
+0:        Time:      121.300       15.163      800.0
+0:                  (ns/day)    (hour/ns)    (ms/step)  (Matom*steps/s) 
+0: Performance:      569.801        0.042        0.152           40.519 
+0: 
+0: GROMACS reminds you: "We should change the code to FORTRAN, so it would be all caps, same as the name." (Paul Bauer, while discussing the spelling of GROMACS)
+0: 
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f md_01.mdp -c eq3.gro -p opc3.top -o md_01.tpr -maxwarn 3
+
+
+WARNING 1 [file md_01.mdp]:
+  The Berendsen thermostat does not generate the correct kinetic energy
+  distribution, and should not be used for new production simulations (in
+  our opinion). We would recommend the V-rescale thermostat.
+
+
+WARNING 2 [file md_01.mdp]:
+  The Berendsen barostat does not generate any strictly correct ensemble,
+  and should not be used for new production simulations (in our opinion).
+  We recommend using the C-rescale barostat instead.
+
+
+WARNING 3 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group System is 12285.00
+
+There were 3 WARNINGs
+
+GROMACS reminds you: "I Had So Many Problem, and Then I Got Me a Walkman" (F. Black)
+
+Setting the LD random seed to -1084236083
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+
+Taking velocities from 'eq3.gro'
+Analysing residue names:
+There are:  2048      Water residues
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 298.15 K
+
+Calculated rlist for 1x1 atom pair-list as 1.817 nm, buffer size 0.017 nm
+
+Set rlist, assuming 4x4 atom pair-list, to 1.810 nm, buffer size 0.010 nm
+
+Note that mdrun will redetermine rlist based on the actual pair-list setup
+
+This run will generate roughly 334 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: Command line:
+0:   gmx_mpi mdrun -deffnm md_01 -ntomp 8 -nb gpu
+0: 
+0: Reading file md_01.tpr, VERSION 2026.1-spack (single precision)
+0: Changing nstlist from 5 to 40, rlist from 1.81 to 1.97
+0: 
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE_GPU_AWARE_MPI environment variable.
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the GPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: starting mdrun '2048 OPC3 water, benchmark box'
+0: 1000000 steps,   1000.0 ps.
+0: 
+0: Writing final coordinates.
+0: 
+0: NOTE: 10 % of the run time was spent in pair search,
+0:       you might want to increase nstlist (this has no effect on accuracy)
+0: 
+0:                Core t (s)   Wall t (s)        (%)
+0:        Time:     1239.486      154.937      800.0
+0:                  (ns/day)    (hour/ns)    (ms/step)  (Matom*steps/s) 
+0: Performance:      557.648        0.043        0.155           39.655 
+0: 
+0: GROMACS reminds you: "Or (horrors!) use Berendsen!" (Justin Lemkul)
+0: 
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f md_02.mdp -c md_01.gro -p opc3.top -o md_02.tpr -maxwarn 3
+
+
+WARNING 1 [file md_02.mdp]:
+  The Berendsen thermostat does not generate the correct kinetic energy
+  distribution, and should not be used for new production simulations (in
+  our opinion). We would recommend the V-rescale thermostat.
+
+
+WARNING 2 [file md_02.mdp]:
+  The Berendsen barostat does not generate any strictly correct ensemble,
+  and should not be used for new production simulations (in our opinion).
+  We recommend using the C-rescale barostat instead.
+
+
+WARNING 3 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group System is 12285.00
+
+There were 3 WARNINGs
+
+GROMACS reminds you: "Or (horrors!) use Berendsen!" (Justin Lemkul)
+
+Setting the LD random seed to 771227646
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+
+Taking velocities from 'md_01.gro'
+Analysing residue names:
+There are:  2048      Water residues
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 298.15 K
+
+Calculated rlist for 1x1 atom pair-list as 1.817 nm, buffer size 0.017 nm
+
+Set rlist, assuming 4x4 atom pair-list, to 1.810 nm, buffer size 0.010 nm
+
+Note that mdrun will redetermine rlist based on the actual pair-list setup
+
+This run will generate roughly 334 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: Command line:
+0:   gmx_mpi mdrun -deffnm md_02 -ntomp 8 -nb gpu
+0: 
+0: Reading file md_02.tpr, VERSION 2026.1-spack (single precision)
+0: Changing nstlist from 5 to 40, rlist from 1.81 to 1.97
+0: 
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE_GPU_AWARE_MPI environment variable.
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the GPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: starting mdrun '2048 OPC3 water, benchmark box'
+0: 1000000 steps,   1000.0 ps.
+0: 
+0: Writing final coordinates.
+0: 
+0: NOTE: 10 % of the run time was spent in pair search,
+0:       you might want to increase nstlist (this has no effect on accuracy)
+0: 
+0:                Core t (s)   Wall t (s)        (%)
+0:        Time:     1242.565      155.322      800.0
+0:                  (ns/day)    (hour/ns)    (ms/step)  (Matom*steps/s) 
+0: Performance:      556.266        0.043        0.155           39.557 
+0: 
+0: GROMACS reminds you: "There's so many shades of black" (The Raconteurs)
+0: 
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f md_03.mdp -c md_02.gro -p opc3.top -o md_03.tpr -maxwarn 3
+
+
+WARNING 1 [file md_03.mdp]:
+  The Berendsen thermostat does not generate the correct kinetic energy
+  distribution, and should not be used for new production simulations (in
+  our opinion). We would recommend the V-rescale thermostat.
+
+
+WARNING 2 [file md_03.mdp]:
+  The Berendsen barostat does not generate any strictly correct ensemble,
+  and should not be used for new production simulations (in our opinion).
+  We recommend using the C-rescale barostat instead.
+
+
+WARNING 3 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group System is 12285.00
+
+There were 3 WARNINGs
+
+GROMACS reminds you: "There's so many shades of black" (The Raconteurs)
+
+Setting the LD random seed to -294652929
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+
+Taking velocities from 'md_02.gro'
+Analysing residue names:
+There are:  2048      Water residues
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 298.15 K
+
+Calculated rlist for 1x1 atom pair-list as 1.817 nm, buffer size 0.017 nm
+
+Set rlist, assuming 4x4 atom pair-list, to 1.810 nm, buffer size 0.010 nm
+
+Note that mdrun will redetermine rlist based on the actual pair-list setup
+
+This run will generate roughly 334 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: Command line:
+0:   gmx_mpi mdrun -deffnm md_03 -ntomp 8 -nb gpu
+0: 
+0: Reading file md_03.tpr, VERSION 2026.1-spack (single precision)
+0: Changing nstlist from 5 to 40, rlist from 1.81 to 1.97
+0: 
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE_GPU_AWARE_MPI environment variable.
+0: 
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the GPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: starting mdrun '2048 OPC3 water, benchmark box'
+0: 1000000 steps,   1000.0 ps.
+0: 
+0: Writing final coordinates.
+0: 
+0: NOTE: 10 % of the run time was spent in pair search,
+0:       you might want to increase nstlist (this has no effect on accuracy)
+0: 
+0:                Core t (s)   Wall t (s)        (%)
+0:        Time:     1238.927      154.867      800.0
+0:                  (ns/day)    (hour/ns)    (ms/step)  (Matom*steps/s) 
+0: Performance:      557.899        0.043        0.155           39.673 
+0: 
+0: GROMACS reminds you: "Never replicate a successful experiment." (Fett's law.)
+0: 
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f md_04.mdp -c md_03.gro -p opc3.top -o md_04.tpr -maxwarn 3
+
+
+WARNING 1 [file md_04.mdp]:
+  The Berendsen thermostat does not generate the correct kinetic energy
+  distribution, and should not be used for new production simulations (in
+  our opinion). We would recommend the V-rescale thermostat.
+
+
+WARNING 2 [file md_04.mdp]:
+  The Berendsen barostat does not generate any strictly correct ensemble,
+  and should not be used for new production simulations (in our opinion).
+  We recommend using the C-rescale barostat instead.
+
+
+WARNING 3 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group System is 12285.00
+
+There were 3 WARNINGs
+
+GROMACS reminds you: "There are only two kinds of programming languages: those people always bitch about and those nobody uses." (Bjarne Stroustrup)
+
+Setting the LD random seed to -536875046
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+
+Taking velocities from 'md_03.gro'
+Analysing residue names:
+There are:  2048      Water residues
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 298.15 K
+
+Calculated rlist for 1x1 atom pair-list as 1.817 nm, buffer size 0.017 nm
+
+Set rlist, assuming 4x4 atom pair-list, to 1.810 nm, buffer size 0.010 nm
+
+Note that mdrun will redetermine rlist based on the actual pair-list setup
+
+This run will generate roughly 334 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: Command line:
+0:   gmx_mpi mdrun -deffnm md_04 -ntomp 8 -nb gpu
+0: 
+0: Reading file md_04.tpr, VERSION 2026.1-spack (single precision)
+0: Changing nstlist from 5 to 40, rlist from 1.81 to 1.97
+0: 
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE_GPU_AWARE_MPI environment variable.
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the GPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: starting mdrun '2048 OPC3 water, benchmark box'
+0: 1000000 steps,   1000.0 ps.
+0: 
+0: Writing final coordinates.
+0: 
+0: NOTE: 10 % of the run time was spent in pair search,
+0:       you might want to increase nstlist (this has no effect on accuracy)
+0: 
+0:                Core t (s)   Wall t (s)        (%)
+0:        Time:     1233.446      154.182      800.0
+0:                  (ns/day)    (hour/ns)    (ms/step)  (Matom*steps/s) 
+0: Performance:      560.379        0.043        0.154           39.849 
+0: 
+0: GROMACS reminds you: "In physics, you don't have to go around making trouble for yourself. Nature does it for you." (Frank Wilczek)
+0: 
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f md_05.mdp -c md_04.gro -p opc3.top -o md_05.tpr -maxwarn 3
+
+
+WARNING 1 [file md_05.mdp]:
+  The Berendsen thermostat does not generate the correct kinetic energy
+  distribution, and should not be used for new production simulations (in
+  our opinion). We would recommend the V-rescale thermostat.
+
+
+WARNING 2 [file md_05.mdp]:
+  The Berendsen barostat does not generate any strictly correct ensemble,
+  and should not be used for new production simulations (in our opinion).
+  We recommend using the C-rescale barostat instead.
+
+
+WARNING 3 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group System is 12285.00
+
+There were 3 WARNINGs
+
+GROMACS reminds you: "In physics, you don't have to go around making trouble for yourself. Nature does it for you." (Frank Wilczek)
+
+Setting the LD random seed to -23730217
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+
+Taking velocities from 'md_04.gro'
+Analysing residue names:
+There are:  2048      Water residues
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 298.15 K
+
+Calculated rlist for 1x1 atom pair-list as 1.817 nm, buffer size 0.017 nm
+
+Set rlist, assuming 4x4 atom pair-list, to 1.810 nm, buffer size 0.010 nm
+
+Note that mdrun will redetermine rlist based on the actual pair-list setup
+
+This run will generate roughly 334 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: Command line:
+0:   gmx_mpi mdrun -deffnm md_05 -ntomp 8 -nb gpu
+0: 
+0: Reading file md_05.tpr, VERSION 2026.1-spack (single precision)
+0: Changing nstlist from 5 to 40, rlist from 1.81 to 1.97
+0: 
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE_GPU_AWARE_MPI environment variable.
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the GPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: starting mdrun '2048 OPC3 water, benchmark box'
+0: 1000000 steps,   1000.0 ps.
+0: 
+0: Writing final coordinates.
+0: 
+0: NOTE: 10 % of the run time was spent in pair search,
+0:       you might want to increase nstlist (this has no effect on accuracy)
+0: 
+0:                Core t (s)   Wall t (s)        (%)
+0:        Time:     1240.360      155.046      800.0
+0:                  (ns/day)    (hour/ns)    (ms/step)  (Matom*steps/s) 
+0: Performance:      557.255        0.043        0.155           39.627 
+0: 
+0: GROMACS reminds you: "Today we're not going to optimize our CUDA code, cause that's just a rabbit hole of misery!" (Tim Warburton)
+0: 
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f md_06.mdp -c md_05.gro -p opc3.top -o md_06.tpr -maxwarn 3
+
+
+WARNING 1 [file md_06.mdp]:
+  The Berendsen thermostat does not generate the correct kinetic energy
+  distribution, and should not be used for new production simulations (in
+  our opinion). We would recommend the V-rescale thermostat.
+
+
+WARNING 2 [file md_06.mdp]:
+  The Berendsen barostat does not generate any strictly correct ensemble,
+  and should not be used for new production simulations (in our opinion).
+  We recommend using the C-rescale barostat instead.
+
+
+WARNING 3 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group System is 12285.00
+
+There were 3 WARNINGs
+
+GROMACS reminds you: "Today we're not going to optimize our CUDA code, cause that's just a rabbit hole of misery!" (Tim Warburton)
+
+Setting the LD random seed to -310411522
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+
+Taking velocities from 'md_05.gro'
+Analysing residue names:
+There are:  2048      Water residues
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 298.15 K
+
+Calculated rlist for 1x1 atom pair-list as 1.817 nm, buffer size 0.017 nm
+
+Set rlist, assuming 4x4 atom pair-list, to 1.810 nm, buffer size 0.010 nm
+
+Note that mdrun will redetermine rlist based on the actual pair-list setup
+
+This run will generate roughly 334 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: Command line:
+0:   gmx_mpi mdrun -deffnm md_06 -ntomp 8 -nb gpu
+0: 
+0: 
+0: Reading file md_06.tpr, VERSION 2026.1-spack (single precision)
+0: Changing nstlist from 5 to 40, rlist from 1.81 to 1.97
+0: 
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE_GPU_AWARE_MPI environment variable.
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the GPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: starting mdrun '2048 OPC3 water, benchmark box'
+0: 1000000 steps,   1000.0 ps.
+0: 
+0: Writing final coordinates.
+0: 
+0: NOTE: 10 % of the run time was spent in pair search,
+0:       you might want to increase nstlist (this has no effect on accuracy)
+0: 
+0:                Core t (s)   Wall t (s)        (%)
+0:        Time:     1240.067      155.009      800.0
+0:                  (ns/day)    (hour/ns)    (ms/step)  (Matom*steps/s) 
+0: Performance:      557.386        0.043        0.155           39.636 
+0: 
+0: GROMACS reminds you: "Do you know what cations don't like? Dog-ions. Do you know what they like? Pie." (Tom Cheatham)
+0: 
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f md_07.mdp -c md_06.gro -p opc3.top -o md_07.tpr -maxwarn 3
+
+
+WARNING 1 [file md_07.mdp]:
+  The Berendsen thermostat does not generate the correct kinetic energy
+  distribution, and should not be used for new production simulations (in
+  our opinion). We would recommend the V-rescale thermostat.
+
+
+WARNING 2 [file md_07.mdp]:
+  The Berendsen barostat does not generate any strictly correct ensemble,
+  and should not be used for new production simulations (in our opinion).
+  We recommend using the C-rescale barostat instead.
+
+
+WARNING 3 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group System is 12285.00
+
+There were 3 WARNINGs
+
+GROMACS reminds you: "Interfacing Space and Beyond..." (P. J. Harvey)
+
+Setting the LD random seed to -67633313
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+
+Taking velocities from 'md_06.gro'
+Analysing residue names:
+There are:  2048      Water residues
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 298.15 K
+
+Calculated rlist for 1x1 atom pair-list as 1.817 nm, buffer size 0.017 nm
+
+Set rlist, assuming 4x4 atom pair-list, to 1.810 nm, buffer size 0.010 nm
+
+Note that mdrun will redetermine rlist based on the actual pair-list setup
+
+This run will generate roughly 334 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: Command line:
+0:   gmx_mpi mdrun -deffnm md_07 -ntomp 8 -nb gpu
+0: 
+0: Reading file md_07.tpr, VERSION 2026.1-spack (single precision)
+0: Changing nstlist from 5 to 40, rlist from 1.81 to 1.97
+0: 
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE_GPU_AWARE_MPI environment variable.
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the GPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: starting mdrun '2048 OPC3 water, benchmark box'
+0: 1000000 steps,   1000.0 ps.
+0: 
+0: Writing final coordinates.
+0: 
+0: NOTE: 10 % of the run time was spent in pair search,
+0:       you might want to increase nstlist (this has no effect on accuracy)
+0: 
+0:                Core t (s)   Wall t (s)        (%)
+0:        Time:     1238.259      154.783      800.0
+0:                  (ns/day)    (hour/ns)    (ms/step)  (Matom*steps/s) 
+0: Performance:      558.201        0.043        0.155           39.694 
+0: 
+0: GROMACS reminds you: "Science, my lad, is made up of mistakes, but they are mistakes which it is useful to make, because they lead little by little to the truth." (Jules Verne)
+0: 
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f md_08.mdp -c md_07.gro -p opc3.top -o md_08.tpr -maxwarn 3
+
+
+WARNING 1 [file md_08.mdp]:
+  The Berendsen thermostat does not generate the correct kinetic energy
+  distribution, and should not be used for new production simulations (in
+  our opinion). We would recommend the V-rescale thermostat.
+
+
+WARNING 2 [file md_08.mdp]:
+  The Berendsen barostat does not generate any strictly correct ensemble,
+  and should not be used for new production simulations (in our opinion).
+  We recommend using the C-rescale barostat instead.
+
+
+WARNING 3 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group System is 12285.00
+
+There were 3 WARNINGs
+
+GROMACS reminds you: "Science, my lad, is made up of mistakes, but they are mistakes which it is useful to make, because they lead little by little to the truth." (Jules Verne)
+
+Setting the LD random seed to -279978260
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+
+Taking velocities from 'md_07.gro'
+Analysing residue names:
+There are:  2048      Water residues
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 298.15 K
+
+Calculated rlist for 1x1 atom pair-list as 1.817 nm, buffer size 0.017 nm
+
+Set rlist, assuming 4x4 atom pair-list, to 1.810 nm, buffer size 0.010 nm
+
+Note that mdrun will redetermine rlist based on the actual pair-list setup
+
+This run will generate roughly 334 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: Command line:
+0:   gmx_mpi mdrun -deffnm md_08 -ntomp 8 -nb gpu
+0: 
+0: Reading file md_08.tpr, VERSION 2026.1-spack (single precision)
+0: Changing nstlist from 5 to 40, rlist from 1.81 to 1.97
+0: 
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE_GPU_AWARE_MPI environment variable.
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the GPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: starting mdrun '2048 OPC3 water, benchmark box'
+0: 1000000 steps,   1000.0 ps.
+0: 
+0: Writing final coordinates.
+0: 
+0: NOTE: 10 % of the run time was spent in pair search,
+0:       you might want to increase nstlist (this has no effect on accuracy)
+0: 
+0:                Core t (s)   Wall t (s)        (%)
+0:        Time:     1239.636      154.955      800.0
+0:                  (ns/day)    (hour/ns)    (ms/step)  (Matom*steps/s) 
+0: Performance:      557.581        0.043        0.155           39.650 
+0: 
+0: GROMACS reminds you: "It doesn't pay to make predictions" (Crowded House)
+0: 
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f md_09.mdp -c md_08.gro -p opc3.top -o md_09.tpr -maxwarn 3
+
+
+WARNING 1 [file md_09.mdp]:
+  The Berendsen thermostat does not generate the correct kinetic energy
+  distribution, and should not be used for new production simulations (in
+  our opinion). We would recommend the V-rescale thermostat.
+
+
+WARNING 2 [file md_09.mdp]:
+  The Berendsen barostat does not generate any strictly correct ensemble,
+  and should not be used for new production simulations (in our opinion).
+  We recommend using the C-rescale barostat instead.
+
+
+WARNING 3 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group System is 12285.00
+
+There were 3 WARNINGs
+
+GROMACS reminds you: "It doesn't pay to make predictions" (Crowded House)
+
+Setting the LD random seed to 1207746387
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+
+Taking velocities from 'md_08.gro'
+Analysing residue names:
+There are:  2048      Water residues
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 298.15 K
+
+Calculated rlist for 1x1 atom pair-list as 1.817 nm, buffer size 0.017 nm
+
+Set rlist, assuming 4x4 atom pair-list, to 1.810 nm, buffer size 0.010 nm
+
+Note that mdrun will redetermine rlist based on the actual pair-list setup
+
+This run will generate roughly 334 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: Command line:
+0:   gmx_mpi mdrun -deffnm md_09 -ntomp 8 -nb gpu
+0: 
+0: Reading file md_09.tpr, VERSION 2026.1-spack (single precision)
+0: Changing nstlist from 5 to 40, rlist from 1.81 to 1.97
+0: 
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE_GPU_AWARE_MPI environment variable.
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the GPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: starting mdrun '2048 OPC3 water, benchmark box'
+0: 1000000 steps,   1000.0 ps.
+0: 
+0: Writing final coordinates.
+0: 
+0: NOTE: 10 % of the run time was spent in pair search,
+0:       you might want to increase nstlist (this has no effect on accuracy)
+0: 
+0:                Core t (s)   Wall t (s)        (%)
+0:        Time:     1234.066      154.259      800.0
+0:                  (ns/day)    (hour/ns)    (ms/step)  (Matom*steps/s) 
+0: Performance:      560.097        0.043        0.154           39.829 
+0: 
+0: GROMACS reminds you: "Don't be afraid of hard work. Nothing worthwhile comes easily. Don't let others discourage you or tell you that you can't do it. In my day I was told women didn't go into chemistry. I saw no reason why we couldn't." (Gertrude Elion)
+0: 
+                   :-) GROMACS - gmx grompp, 2026.1-spack (-:
+
+Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+Command line:
+  gmx_mpi grompp -f md_10.mdp -c md_09.gro -p opc3.top -o md_10.tpr -maxwarn 3
+
+
+WARNING 1 [file md_10.mdp]:
+  The Berendsen thermostat does not generate the correct kinetic energy
+  distribution, and should not be used for new production simulations (in
+  our opinion). We would recommend the V-rescale thermostat.
+
+
+WARNING 2 [file md_10.mdp]:
+  The Berendsen barostat does not generate any strictly correct ensemble,
+  and should not be used for new production simulations (in our opinion).
+  We recommend using the C-rescale barostat instead.
+
+
+WARNING 3 [file opc3.top, line 8]:
+  The GROMOS force fields have been parametrized with a physically
+  incorrect multiple-time-stepping scheme for a twin-range cut-off. When
+  used with a single-range cut-off (or a correct Trotter
+  multiple-time-stepping scheme), physical properties, such as the density,
+  might differ from the intended values. Since there are researchers
+  actively working on validating GROMOS with modern integrators we have not
+  yet removed the GROMOS force fields, but you should be aware of these
+  issues and check if molecules in your system are affected before
+  proceeding. Further information is available at
+  https://gitlab.com/gromacs/gromacs/-/issues/2884, and a longer
+  explanation of our decision to remove physically incorrect algorithms can
+  be found at https://doi.org/10.26434/chemrxiv.11474583.v1 .
+
+Number of degrees of freedom in T-Coupling group System is 12285.00
+
+There were 3 WARNINGs
+
+GROMACS reminds you: "Don't be afraid of hard work. Nothing worthwhile comes easily. Don't let others discourage you or tell you that you can't do it. In my day I was told women didn't go into chemistry. I saw no reason why we couldn't." (Gertrude Elion)
+
+Setting the LD random seed to -549112169
+
+Generated 285 of the 1770 non-bonded parameter combinations
+
+Excluding 2 bonded neighbours molecule type 'SOL'
+
+Taking velocities from 'md_09.gro'
+Analysing residue names:
+There are:  2048      Water residues
+
+Determining Verlet buffer for a tolerance of 0.005 kJ/mol/ps at 298.15 K
+
+Calculated rlist for 1x1 atom pair-list as 1.817 nm, buffer size 0.017 nm
+
+Set rlist, assuming 4x4 atom pair-list, to 1.810 nm, buffer size 0.010 nm
+
+Note that mdrun will redetermine rlist based on the actual pair-list setup
+
+This run will generate roughly 334 Mb of data
+0:                    :-) GROMACS - gmx mdrun, 2026.1-spack (-:
+0: 
+0: Executable:   /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr/bin/gmx_mpi
+0: Data prefix:  /software/setonix/2025.08/software/linux-sles15-zen3/clang-19.1.3/gromacs-2026.1-m6c5y463dkyueflmcjo2f4vrqipqsgzr
+0: Working dir:  /scratch/m72/mstroet/water_benchmarking/opc3
+0: Command line:
+0:   gmx_mpi mdrun -deffnm md_10 -ntomp 8 -nb gpu
+0: 
+0: 
+0: Reading file md_10.tpr, VERSION 2026.1-spack (single precision)
+0: Changing nstlist from 5 to 40, rlist from 1.81 to 1.97
+0: 
+0: GPU-aware MPI was not detected, will not use direct GPU communication. Check the GROMACS install guide for recommendations for GPU-aware support. If you are certain about GPU-aware support in your MPI library, you can force its use by setting the GMX_FORCE
+0: _GPU_AWARE_MPI environment variable.
+0: 
+0: 1 GPU selected for this run.
+0: Mapping of GPU IDs to the 1 GPU task in the 1 rank on this node:
+0:   PP:0
+0: PP tasks will do non-perturbed short-ranged interactions on the GPU
+0: PP task will update and constrain coordinates on the GPU
+0: Using 1 MPI process
+0: 
+0: Non-default thread affinity set, disabling internal thread affinity
+0: 
+0: Using 8 OpenMP threads 
+0: 
+0: starting mdrun '2048 OPC3 water, benchmark box'
+0: 1000000 steps,   1000.0 ps.
+0: 
+0: Writing final coordinates.
+0: 
+0: NOTE: 10 % of the run time was spent in pair search,
+0:       you might want to increase nstlist (this has no effect on accuracy)
+0: 
+0:                Core t (s)   Wall t (s)        (%)
+0:        Time:     1235.579      154.448      800.0
+0:                  (ns/day)    (hour/ns)    (ms/step)  (Matom*steps/s) 
+0: Performance:      559.411        0.043        0.154           39.780 
+0: 
+0: GROMACS reminds you: "Let's Go Hang Out In a Mall" (LIVE)
+0: 
+LADDER COMPLETE
