@@ -39,7 +39,7 @@
 >       published value inside its literature range; results in the README table
 > - [x] protocol sweep at 1.4 nm / 2 fs / RF 78.4, RF 61, PME (Setonix 47758274) —
 >       `results/opc3_settings.md`; recommendation: 1.4 nm, 2 fs, RF, 10 ns, 0.2 ps sampling
-> - [ ] `water-bench report` — regenerate `results/summary.md` with the `OPC3/gromacs` column
+> - [x] `water-bench report` — regenerate `results/summary.md` with the `OPC3/gromacs` column  (done: commit b9800ce, 2026-09)
 >       (needs the 1.8 nm analysis re-run through `report`, ~1 h of streaming)
 > - [x] `LITERATURE["opc3"]` filled in from Table III of the paper (ρ 0.996 ± 0.001, ε 78.4 ± 1,
 >       D 2.30 ± 0.02, ΔH_vap 10.73 ± 0.004 kcal/mol = 44.89 kJ/mol). The paper reports no
@@ -74,7 +74,7 @@ Cross-engine settings audit: `/ssd1_nas_md/protein_validation/settings.md`.
       (`water_benchmarking https://github.com/ATB-UQ/water_benchmarking main editable`) + entry in the
       root `.gitignore` sibling block; `bash /home/atb/ATB/scripts/sync_siblings.sh --check`.
 - [x] `uv pip install --python /home/atb/ATB/.venv/bin/python -e /home/atb/ATB/water_benchmarking --no-deps`
-- [ ] Create the GitHub remote under ATB-UQ (manual; local repo + commit exist).
+- [x] Create the GitHub remote under ATB-UQ (manual; local repo + commit exist).  (origin is git@github.com:ATB-UQ/water_benchmarking.git)
 - [x] Run root: `mkdir -p /ssd1_nas_md/water_benchmarking/{spc,spce}/{gromos,gromacs}`.
 
 ## 1. Step-0 feasibility checks (local, `/opt/gromos/1.6.0/bin`) — do these first

@@ -205,7 +205,9 @@ water-bench diagnostics            # the protocol-variation runs
 water-bench report                 # results/summary.{md,csv} and figures
 ```
 
-Runs live under `/ssd1_nas_md/water_benchmarking/<model>/<engine>/`.
+Runs live under `/ssd1_nas_md/water_benchmarking/<model>/<engine>/`. The raw trajectories were
+deleted 2026-08-31; the per-run checksummed records that stand in for them are in
+[`audit/`](audit/README.md), and `water_benchmarking.audit.build()` writes one for any new run.
 
 **Transfers use the Setonix data movers, in parallel.** `submit-gromacs` talks to the
 login node (`setonix`) for `sbatch`; `analyse --collect` pulls results over `setonix-dm`
@@ -216,3 +218,24 @@ cipher), but throughput scales almost linearly with concurrency (2 streams 31 MB
 streams 72 MB/s), so `collect()` splits the pull across `gromacs.TRANSFER_STREAMS = 4`
 connections and moves a model in under a minute. See the platform
 [`CLAUDE.md`](../CLAUDE.md) for which other siblings still transfer through the login node.
+
+## Status and platform fit
+
+A finished, standalone benchmark (research, not on the request path or the Celery beat). No
+other sibling imports `water_benchmarking`, and it imports no sibling: it shells out to the
+`gromos_job_wrapper` Gadi shim (`protocol.GADI_MD_SHIM`) and ene_ana library, a local gromos++/md++
+install (`/opt/gromos/1.6.0`) and GROMACS 2026.1 (`gromacs.GROMACS_PREFIX`), and reaches Gadi
+and Setonix over ssh. Its water reference values were reused by `atb_condensed_phase`
+(`data/experimental/water_reference.csv`), the general liquid-property campaign layer.
+Remaining open items are in [`TODO.md`](TODO.md) (mostly the original run checklist, since
+completed; see its dated status notes at the top).
+
+**Configuration is hard-coded, not env-driven**: `RUN_ROOT`, `GROMACS_PREFIX`, the shim and
+library paths are module constants in `protocol.py` / `gromacs.py` (all `/home/atb`, `/ssd1_nas_md`
+paths). Re-running elsewhere means editing them.
+
+## Tests
+
+```bash
+/home/atb/ATB/.venv/bin/python -m pytest      # 56 tests, ~6 s, offline
+```
