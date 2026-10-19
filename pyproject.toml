@@ -9,6 +9,10 @@ description = "Benchmark classical water models (SPC, SPC/E, OPC3) against exper
 requires-python = ">=3.9"
 dependencies = ["numpy"]
 
+[project.optional-dependencies]
+# analysis/plots.py (imported lazily by report.py)
+plot = ["matplotlib>=3.9.4"]
+
 [project.scripts]
 water-bench = "water_benchmarking.cli:main"
 
