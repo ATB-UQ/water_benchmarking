@@ -226,7 +226,7 @@ other sibling imports `water_benchmarking`, and it imports no sibling: it shells
 `gromos_job_wrapper` Gadi shim (`protocol.GADI_MD_SHIM`) and ene_ana library, a local gromos++/md++
 install (`/opt/gromos/1.6.0`) and GROMACS 2026.1 (`gromacs.GROMACS_PREFIX`), and reaches Gadi
 and Setonix over ssh. Its water reference values were reused by `atb_condensed_phase`
-(`data/experimental/water_reference.csv`), the general liquid-property campaign layer.
+(`src/atb_condensed_phase/data/experimental/water_reference.csv`), the general liquid-property campaign layer.
 Remaining open items are in [`TODO.md`](TODO.md) (mostly the original run checklist, since
 completed; see its dated status notes at the top).
 
